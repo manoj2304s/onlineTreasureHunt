@@ -137,3 +137,33 @@ export const getLeaderboard = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getHint = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+
+    const level = await Level.findOne({
+      levelNumber: user.currentLevel,
+    });
+    if (!level) {
+      return res.status(404).json({
+        message: "Level not found",
+      });
+    }
+
+    const alreadyUsed = user.hintUsedLevels.includes(level.levelNumber);
+    if (!alreadyUsed) {
+      user.penaltyTime += 300;
+      user.hintUsedLevels.push(level.levelNumber);
+      await user.save();
+    }
+
+    res.json({
+      hint: level.hint,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
