@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     wrongAttempts: { type: Number, default: 0 },
     penaltyTime: { type: Number, default: 0 },
     lockedUntil: { type: Date },
+    hintUsedLevels: { type: [Number], default: [] },
   },
   { timestamps: true },
 );
