@@ -6,21 +6,18 @@ import User from "../models/user.model";
 export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
-    const currentLevel = await Level.findOne({
+    const level = await Level.findOne({
       levelNumber: user.currentLevel,
     });
-    if (!currentLevel) {
+    if (!level) {
       return res.status(404).json({ message: "Current level not found" });
     }
 
     res.status(200).json({
-      levelNumber: currentLevel.levelNumber,
-      description: currentLevel.question,
-      hint: currentLevel.hint,
+      levelNumber: level.levelNumber,
+      description: level.question,
+      hint: level.hint,
     });
   } catch (error) {
     console.error("Error fetching current level:", error);
@@ -160,15 +157,24 @@ export const getHint = async (req: Request, res: Response) => {
       });
     }
 
-    const alreadyUsed = user.hintUsedLevels.includes(level.levelNumber);
-    if (!alreadyUsed) {
+    if (!level.hint) {
+      return res.status(404).json({
+        message: "Hint not available for this level",
+      });
+    }
+
+    let penaltyApplied = false;
+    const hintAlreadyUsed = user.hintUsedLevels.includes(level.levelNumber);
+    if (!hintAlreadyUsed) {
       user.penaltyTime += 300;
       user.hintUsedLevels.push(level.levelNumber);
+      penaltyApplied = true;
       await user.save();
     }
 
     res.json({
       hint: level.hint,
+      penaltyApplied,
     });
   } catch (error) {
     res.status(500).json({
