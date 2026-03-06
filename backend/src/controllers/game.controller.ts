@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Level from "../models/level.model";
 import bcrypt from "bcrypt";
+import User from "../models/user.model";
 
 export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
@@ -78,7 +79,27 @@ export const submitAnswer = async (req: Request, res: Response) => {
       question: nextLevel.question,
       hint: nextLevel.hint,
     });
-    
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+export const getLeaderboard = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find()
+      .select("username currentLevel")
+      .sort({ currentLevel: -1 })
+      .limit(10);
+
+    const leaderboard = users.map((user, index) => ({
+      rank: index + 1,
+      name: user.username,
+      level: user.currentLevel,
+    }));
+
+    res.json(leaderboard);
   } catch (error) {
     res.status(500).json({
       message: "Server error",
