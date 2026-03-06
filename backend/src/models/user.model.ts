@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     penaltyTime: { type: Number, default: 0 },
     lockedUntil: { type: Date },
     hintUsedLevels: { type: [Number], default: [] },
+    role: { type: String, enum: ["player", "admin"], default: "player" },
   },
   { timestamps: true },
 );
