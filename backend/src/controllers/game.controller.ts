@@ -63,7 +63,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
       answer.toLowerCase().trim(),
       level.answerHash,
     );
-    
+
     if (!isCorrect) {
       user.wrongAttempts += 1;
 
@@ -91,7 +91,6 @@ export const submitAnswer = async (req: Request, res: Response) => {
 
     user.currentLevel += 1;
     user.wrongAttempts = 0;
-    await user.save();
 
     const nextLevel = await Level.findOne({
       levelNumber: user.currentLevel,
@@ -121,16 +120,24 @@ export const submitAnswer = async (req: Request, res: Response) => {
 
 export const getLeaderboard = async (req: Request, res: Response) => {
   try {
-    const users = await User.find()
-      .select("username currentLevel")
-      .sort({ currentLevel: -1, gameCompletedAt: 1 })
-      .limit(10);
+    const users = await User.find({
+      gameCompletedAt: { $ne: null },
+    }).select("username gameStartedAt gameCompletedAt penaltyTime");
 
-    const leaderboard = users.map((user, index) => ({
-      rank: index + 1,
-      name: user.username,
-      level: user.currentLevel,
-    }));
+    const leaderboard = users.map((user) => {
+      const baseTime =
+        (user.gameCompletedAt?.getTime() ?? 0) -
+        (user.gameStartedAt?.getTime() ?? 0);
+
+      const finalTime = baseTime + user.penaltyTime * 1000;
+
+      return {
+        username: user.username,
+        time: finalTime,
+      };
+    });
+
+    leaderboard.sort((a, b) => a.time - b.time);
 
     res.json(leaderboard);
   } catch (error) {
