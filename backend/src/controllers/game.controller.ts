@@ -32,6 +32,12 @@ export const submitAnswer = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
 
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      return res.status(403).json({
+        message: "All Lives Lost! Wait for restoration",
+      });
+    }
+
     const { answer } = req.body;
     if (!answer) {
       return res.status(400).json({
@@ -54,13 +60,32 @@ export const submitAnswer = async (req: Request, res: Response) => {
       level.answerHash,
     );
     if (!isCorrect) {
+      user.wrongAttempts += 1;
+
+      if (user.wrongAttempts >= 3) {
+        user.penaltyTime += 120; 
+        user.lockedUntil = new Date(Date.now() + 10000); 
+        user.wrongAttempts = 0;
+
+        await user.save();
+
+        return res.json({
+          correct: false,
+          message:
+            "3 wrong attempts. 2 minute penalty applied. Try again in 10 seconds.",
+        });
+      }
+
+      await user.save();
+
       return res.json({
         correct: false,
-        message: "Incorrect answer. Try again!",
+        message: "Incorrect answer",
       });
     }
 
     user.currentLevel += 1;
+    user.wrongAttempts = 0;
     await user.save();
 
     const nextLevel = await Level.findOne({
