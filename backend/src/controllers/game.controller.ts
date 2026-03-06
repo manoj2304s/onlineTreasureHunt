@@ -63,8 +63,8 @@ export const submitAnswer = async (req: Request, res: Response) => {
       user.wrongAttempts += 1;
 
       if (user.wrongAttempts >= 3) {
-        user.penaltyTime += 120; 
-        user.lockedUntil = new Date(Date.now() + 10000); 
+        user.penaltyTime += 120;
+        user.lockedUntil = new Date(Date.now() + 10000);
         user.wrongAttempts = 0;
 
         await user.save();
@@ -84,6 +84,9 @@ export const submitAnswer = async (req: Request, res: Response) => {
       });
     }
 
+    if (!user.gameStartedAt) {
+      user.gameStartedAt = new Date();
+    }
     user.currentLevel += 1;
     user.wrongAttempts = 0;
     await user.save();
@@ -92,9 +95,12 @@ export const submitAnswer = async (req: Request, res: Response) => {
       levelNumber: user.currentLevel,
     });
     if (!nextLevel) {
+      user.gameCompletedAt = new Date();
+      await user.save();
+
       return res.json({
         correct: true,
-        message: "Congratulations! You completed all levels.",
+        message: "Congratulations! You completed the treasure hunt!",
       });
     }
 
@@ -115,7 +121,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
   try {
     const users = await User.find()
       .select("username currentLevel")
-      .sort({ currentLevel: -1 })
+      .sort({ currentLevel: -1, gameCompletedAt: 1 })
       .limit(10);
 
     const leaderboard = users.map((user, index) => ({
