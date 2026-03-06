@@ -30,8 +30,8 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
 export const submitAnswer = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { answer } = req.body;
 
+    const { answer } = req.body;
     if (!answer) {
       return res.status(400).json({
         message: "Answer is required",
@@ -39,11 +39,9 @@ export const submitAnswer = async (req: Request, res: Response) => {
     }
 
     const currentLevel = user.currentLevel;
-
     const level = await Level.findOne({
       levelNumber: currentLevel,
     });
-
     if (!level) {
       return res.status(404).json({
         message: "Level not found",
@@ -54,7 +52,6 @@ export const submitAnswer = async (req: Request, res: Response) => {
       answer.toLowerCase().trim(),
       level.answerHash,
     );
-
     if (!isCorrect) {
       return res.json({
         correct: false,
@@ -68,7 +65,6 @@ export const submitAnswer = async (req: Request, res: Response) => {
     const nextLevel = await Level.findOne({
       levelNumber: user.currentLevel,
     });
-
     if (!nextLevel) {
       return res.json({
         correct: true,
@@ -82,6 +78,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
       question: nextLevel.question,
       hint: nextLevel.hint,
     });
+    
   } catch (error) {
     res.status(500).json({
       message: "Server error",
