@@ -32,6 +32,10 @@ export const submitAnswer = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
 
+    if (!user.gameStartedAt) {
+      user.gameStartedAt = new Date();
+    }
+
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       return res.status(403).json({
         message: "All Lives Lost! Wait for restoration",
@@ -59,6 +63,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
       answer.toLowerCase().trim(),
       level.answerHash,
     );
+    
     if (!isCorrect) {
       user.wrongAttempts += 1;
 
@@ -84,9 +89,6 @@ export const submitAnswer = async (req: Request, res: Response) => {
       });
     }
 
-    if (!user.gameStartedAt) {
-      user.gameStartedAt = new Date();
-    }
     user.currentLevel += 1;
     user.wrongAttempts = 0;
     await user.save();
