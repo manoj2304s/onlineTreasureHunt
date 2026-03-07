@@ -103,28 +103,34 @@ export const deleteLevel = async (req: Request, res: Response) => {
 
 export const startGame = async (req: Request, res: Response) => {
   try {
-    let config = await GameConfig.findById("game-config");
+    const existingConfig = await GameConfig.findById("game-config");
 
-    if (!config) {
-      config = new GameConfig();
-    }
-
-    if (config.status === "active") {
+    if (existingConfig && existingConfig.status === "active") {
       return res.status(400).json({
         message: "Game already started",
       });
     }
 
-    config.status = "active";
-    config.startedAt = new Date();
-
-    await config.save();
+    const config = await GameConfig.findByIdAndUpdate(
+      "game-config",
+      {
+        status: "active",
+        startedAt: new Date(),
+        endedAt: null,
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      },
+    );
 
     res.json({
       message: "Game started successfully",
-      startedAt: config.startedAt,
+      startedAt: config?.startedAt,
     });
   } catch (error) {
+    console.error("Error starting game:", error);
     res.status(500).json({
       message: "Server error",
     });
@@ -141,16 +147,24 @@ export const endGame = async (req: Request, res: Response) => {
       });
     }
 
-    config.status = "finished";
-    config.endedAt = new Date();
-
-    await config.save();
+    const updatedConfig = await GameConfig.findByIdAndUpdate(
+      "game-config",
+      {
+        status: "finished",
+        endedAt: new Date(),
+      },
+      {
+        new: true,
+      },
+    );
 
     res.json({
       message: "Game ended successfully",
-      endedAt: config.endedAt,
+      endedAt: updatedConfig?.endedAt,
     });
   } catch (error) {
+    console.error("Error ending game:", error);
+
     res.status(500).json({
       message: "Server error",
     });
@@ -164,11 +178,19 @@ export const getGameStatus = async (req: Request, res: Response) => {
     if (!config) {
       return res.json({
         status: "waiting",
+        startedAt: null,
+        endedAt: null,
       });
     }
 
-    res.json(config);
+    res.json({
+      status: config.status,
+      startedAt: config.startedAt,
+      endedAt: config.endedAt,
+    });
   } catch (error) {
+    console.error("Error fetching game status:", error);
+
     res.status(500).json({
       message: "Server error",
     });
