@@ -1,11 +1,20 @@
 import { Request, Response } from "express";
 import Level from "../models/level.model";
+import { GameConfig } from "../models/gameConfig.modle";
 import bcrypt from "bcrypt";
 import User from "../models/user.model";
 
 export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
+
+    const config = await GameConfig.findOne();
+
+    if (!config || config.status !== "active") {
+      return res.status(403).json({
+        message: "Game is not currently active",
+      });
+    }
 
     const level = await Level.findOne({
       levelNumber: user.currentLevel,
@@ -16,7 +25,7 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
 
     res.status(200).json({
       levelNumber: level.levelNumber,
-      description: level.question,
+      question: level.question,
       hint: level.hint,
     });
   } catch (error) {
@@ -28,6 +37,13 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
 export const submitAnswer = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
+
+    const config = await GameConfig.findOne();
+    if (!config || config.status !== "active") {
+      return res.status(403).json({
+        message: "Game is not currently active",
+      });
+    }
 
     if (!user.gameStartedAt) {
       user.gameStartedAt = new Date();
@@ -148,6 +164,13 @@ export const getHint = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
 
+    const config = await GameConfig.findOne();
+    if (!config || config.status !== "active") {
+      return res.status(403).json({
+        message: "Game is not currently active",
+      });
+    }
+    
     const level = await Level.findOne({
       levelNumber: user.currentLevel,
     });

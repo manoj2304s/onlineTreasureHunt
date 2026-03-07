@@ -1,5 +1,6 @@
 import { Response, Request } from "express";
 import Level from "../models/level.model";
+import { GameConfig } from "../models/gameConfig.modle";
 import bcrypt from "bcrypt";
 
 export const createLevel = async (req: Request, res: Response) => {
@@ -93,6 +94,80 @@ export const deleteLevel = async (req: Request, res: Response) => {
     res.json({
       message: "Level deleted successfully",
     });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+export const startGame = async (req: Request, res: Response) => {
+  try {
+    let config = await GameConfig.findOne();
+
+    if (!config) {
+      config = new GameConfig();
+    }
+
+    if (config.status === "active") {
+      return res.status(400).json({
+        message: "Game already started",
+      });
+    }
+
+    config.status = "active";
+    config.startedAt = new Date();
+
+    await config.save();
+
+    res.json({
+      message: "Game started successfully",
+      startedAt: config.startedAt,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+export const endGame = async (req: Request, res: Response) => {
+  try {
+    const config = await GameConfig.findOne();
+
+    if (!config || config.status !== "active") {
+      return res.status(400).json({
+        message: "Game is not active",
+      });
+    }
+
+    config.status = "finished";
+    config.endedAt = new Date();
+
+    await config.save();
+
+    res.json({
+      message: "Game ended successfully",
+      endedAt: config.endedAt,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+export const getGameStatus = async (req: Request, res: Response) => {
+  try {
+    const config = await GameConfig.findOne();
+
+    if (!config) {
+      return res.json({
+        status: "waiting",
+      });
+    }
+
+    res.json(config);
   } catch (error) {
     res.status(500).json({
       message: "Server error",
