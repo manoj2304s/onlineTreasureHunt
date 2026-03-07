@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import Level from "../models/level.model";
-import { GameConfig } from "../models/gameConfig.modle";
+import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
 
 export const createLevel = async (req: Request, res: Response) => {

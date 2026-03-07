@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Level from "../models/level.model";
-import { GameConfig } from "../models/gameConfig.modle";
+import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
 import User from "../models/user.model";
 
@@ -170,7 +170,7 @@ export const getHint = async (req: Request, res: Response) => {
         message: "Game is not currently active",
       });
     }
-    
+
     const level = await Level.findOne({
       levelNumber: user.currentLevel,
     });
