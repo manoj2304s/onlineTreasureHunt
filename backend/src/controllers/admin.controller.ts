@@ -103,7 +103,7 @@ export const deleteLevel = async (req: Request, res: Response) => {
 
 export const startGame = async (req: Request, res: Response) => {
   try {
-    let config = await GameConfig.findOne();
+    let config = await GameConfig.findById("game-config");
 
     if (!config) {
       config = new GameConfig();
@@ -133,7 +133,7 @@ export const startGame = async (req: Request, res: Response) => {
 
 export const endGame = async (req: Request, res: Response) => {
   try {
-    const config = await GameConfig.findOne();
+    const config = await GameConfig.findById("game-config");
 
     if (!config || config.status !== "active") {
       return res.status(400).json({
@@ -159,7 +159,7 @@ export const endGame = async (req: Request, res: Response) => {
 
 export const getGameStatus = async (req: Request, res: Response) => {
   try {
-    const config = await GameConfig.findOne();
+    const config = await GameConfig.findById("game-config");
 
     if (!config) {
       return res.json({

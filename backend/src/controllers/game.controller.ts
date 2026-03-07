@@ -8,7 +8,7 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
 
-    const config = await GameConfig.findOne();
+    const config = await GameConfig.findById("game-config");
 
     if (!config || config.status !== "active") {
       return res.status(403).json({
@@ -38,7 +38,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
 
-    const config = await GameConfig.findOne();
+    const config = await GameConfig.findById("game-config");
     if (!config || config.status !== "active") {
       return res.status(403).json({
         message: "Game is not currently active",
@@ -164,7 +164,7 @@ export const getHint = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
 
-    const config = await GameConfig.findOne();
+    const config = await GameConfig.findById("game-config");
     if (!config || config.status !== "active") {
       return res.status(403).json({
         message: "Game is not currently active",

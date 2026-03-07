@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const GameConfigSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    default: "game-config",
+  },
   status: {
     type: String,
     enum: ["waiting", "active", "finished"],
