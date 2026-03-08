@@ -235,3 +235,49 @@ export const resetGame = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const exportLeaderboard = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find({
+      gameStartedAt: { $ne: null },
+    }).sort({ gameCompletedAt: 1 });
+
+    let rank = 1;
+
+    const rows = users.map((user) => {
+      const totalTime =
+        user.gameCompletedAt && user.gameStartedAt
+          ? (user.gameCompletedAt.getTime() - user.gameStartedAt.getTime()) /
+            1000
+          : null;
+
+      const finalTime =
+        totalTime !== null ? totalTime + user.penaltyTime : null;
+
+      return {
+        rank: rank++,
+        name: user.username,
+        email: user.email,
+        level: user.currentLevel,
+        totalTime,
+        penaltyTime: user.penaltyTime,
+        finalTime,
+      };
+    });
+
+    let csv = "Rank,Name,Email,Level,TotalTime,PenaltyTime,FinalTime\n";
+
+    rows.forEach((r) => {
+      csv += `${r.rank},${r.name},${r.email},${r.level},${r.totalTime},${r.penaltyTime},${r.finalTime}\n`;
+    });
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("leaderboard.csv");
+
+    return res.send(csv);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to export leaderboard",
+    });
+  }
+};

@@ -3,6 +3,7 @@ import {
   createLevel,
   deleteLevel,
   endGame,
+  exportLeaderboard,
   getGameStatus,
   getLevels,
   resetGame,
@@ -22,5 +23,6 @@ router.post("/game/start", protect, adminMiddleware, startGame);
 router.post("/game/end", protect, adminMiddleware, endGame);
 router.get("/game/status", protect, adminMiddleware, getGameStatus);
 router.post("/reset-game", protect, adminMiddleware, resetGame);
+router.get("/export-leaderboard", protect, adminMiddleware, exportLeaderboard);
 
 export default router;
