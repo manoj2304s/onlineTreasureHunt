@@ -16,6 +16,12 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
       });
     }
 
+    if (!user.locationUnlocked) {
+      return res.status(403).json({
+        message: "Reach the location and scan the QR first",
+      });
+    }
+
     const level = await Level.findOne({
       levelNumber: user.currentLevel,
     });
@@ -103,6 +109,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
     }
 
     user.currentLevel += 1;
+    user.locationUnlocked = false;
     user.wrongAttempts = 0;
 
     const nextLevel = await Level.findOne({
@@ -202,6 +209,66 @@ export const getHint = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       message: "Server error",
+    });
+  }
+};
+
+export const unlockLocation = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { qrCode } = req.body;
+
+    if (!qrCode) {
+      return res.status(400).json({
+        message: "QR code is required",
+      });
+    }
+
+    const config = await GameConfig.findOne();
+
+    if (!config || config.status !== "active") {
+      return res.status(403).json({
+        message: "Game is not currently active",
+      });
+    }
+
+    if (user.gameCompletedAt) {
+      return res.status(400).json({
+        message: "You have already completed the game",
+      });
+    }
+
+    if (user.locationUnlocked) {
+      return res.status(400).json({
+        message: "Location already unlocked",
+      });
+    }
+
+    const level = await Level.findOne({
+      levelNumber: user.currentLevel,
+    });
+
+    if (!level) {
+      return res.status(404).json({
+        message: "Level not found",
+      });
+    }
+
+    if (qrCode !== level.qrCode) {
+      return res.status(400).json({
+        message: "Invalid QR code",
+      });
+    }
+
+    user.locationUnlocked = true;
+    await user.save();
+
+    res.json({
+      message: "Location verified. Question unlocked.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to unlock location",
     });
   }
 };

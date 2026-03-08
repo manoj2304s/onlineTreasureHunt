@@ -1,4 +1,4 @@
-import mongoose from "mongoose"; 
+import mongoose from "mongoose";
 
 const levelSchema = new mongoose.Schema(
   {
@@ -6,6 +6,7 @@ const levelSchema = new mongoose.Schema(
     question: { type: String, required: true },
     answerHash: { type: String, required: true },
     hint: { type: String },
+    qrCode: { type: String, required: true },
   },
   { timestamps: true },
 );

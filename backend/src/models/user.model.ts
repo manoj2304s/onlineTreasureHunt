@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     lockedUntil: { type: Date },
     hintUsedLevels: { type: [Number], default: [] },
     role: { type: String, enum: ["player", "admin"], default: "player" },
+    locationUnlocked: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
