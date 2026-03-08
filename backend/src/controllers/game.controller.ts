@@ -61,6 +61,12 @@ export const submitAnswer = async (req: Request, res: Response) => {
       });
     }
 
+    if (!user.locationUnlocked) {
+      return res.status(403).json({
+        message: "Scan the location QR before answering",
+      });
+    }
+
     const { answer } = req.body;
     if (!answer) {
       return res.status(400).json({
@@ -224,7 +230,7 @@ export const unlockLocation = async (req: Request, res: Response) => {
       });
     }
 
-    const config = await GameConfig.findOne();
+    const config = await GameConfig.findById("game-config");
 
     if (!config || config.status !== "active") {
       return res.status(403).json({
