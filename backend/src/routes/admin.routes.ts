@@ -5,6 +5,7 @@ import {
   endGame,
   getGameStatus,
   getLevels,
+  resetGame,
   startGame,
   updateLevel,
 } from "../controllers/admin.controller";
@@ -20,5 +21,6 @@ router.delete("/levels/:id", protect, adminMiddleware, deleteLevel);
 router.post("/game/start", protect, adminMiddleware, startGame);
 router.post("/game/end", protect, adminMiddleware, endGame);
 router.get("/game/status", protect, adminMiddleware, getGameStatus);
+router.post("/reset-game", protect, adminMiddleware, resetGame);
 
 export default router;

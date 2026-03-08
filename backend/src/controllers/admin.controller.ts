@@ -1,5 +1,6 @@
 import { Response, Request } from "express";
 import Level from "../models/level.model";
+import User from "../models/user.model";
 import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
 
@@ -193,6 +194,44 @@ export const getGameStatus = async (req: Request, res: Response) => {
 
     res.status(500).json({
       message: "Server error",
+    });
+  }
+};
+
+export const resetGame = async (req: Request, res: Response) => {
+  try {
+    await User.updateMany(
+      {},
+      {
+        $set: {
+          currentLevel: 1,
+          wrongAttempts: 0,
+          lockUntil: null,
+          locationUnlocked: false,
+          gameStartedAt: null,
+          gameCompletedAt: null,
+          penaltyTime: 0,
+        },
+      },
+    );
+
+    await GameConfig.updateOne(
+      {},
+      {
+        $set: {
+          status: "inactive",
+          startTime: null,
+          endTime: null,
+        },
+      },
+    );
+
+    res.json({
+      message: "Game reset successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to reset game",
     });
   }
 };
