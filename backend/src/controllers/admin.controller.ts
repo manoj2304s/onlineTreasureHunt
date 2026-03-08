@@ -120,7 +120,7 @@ export const startGame = async (req: Request, res: Response) => {
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
         setDefaultsOnInsert: true,
       },
     );
@@ -154,7 +154,7 @@ export const endGame = async (req: Request, res: Response) => {
         endedAt: new Date(),
       },
       {
-        new: true,
+        returnDocument: "after",
       },
     );
 

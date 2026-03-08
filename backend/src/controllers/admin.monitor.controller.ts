@@ -1,0 +1,69 @@
+import { Request, Response } from "express";
+import User from "../models/user.model";
+
+export const getGameStats = async (req: Request, res: Response) => {
+  try {
+    const totalPlayers = await User.countDocuments();
+
+    const playersStarted = await User.countDocuments({
+      gameStartedAt: { $ne: null },
+    });
+
+    const playersCompleted = await User.countDocuments({
+      gameCompletedAt: { $ne: null },
+    });
+
+    const levels = await User.find().select("currentLevel");
+
+    const maxLevel = Math.max(...levels.map((u) => u.currentLevel || 1));
+
+    res.json({
+      totalPlayers,
+      playersStarted,
+      playersCompleted,
+      mostReachedLevel: maxLevel,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch game stats" });
+  }
+};
+
+export const getPlayerProgress = async (req: Request, res: Response) => {
+  try {
+    const players = await User.find()
+      .select("name email currentLevel wrongAttempts lockUntil")
+      .sort({ currentLevel: -1 });
+
+    const formatted = players.map((p) => ({
+      name: p.username,
+      email: p.email,
+      currentLevel: p.currentLevel,
+      wrongAttempts: p.wrongAttempts,
+      isLocked: p.lockedUntil && p.lockedUntil > new Date(),
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch players" });
+  }
+};
+
+export const getLevelAnalytics = async (req: Request, res: Response) => {
+  try {
+    const stats = await User.aggregate([
+      {
+        $group: {
+          _id: "$currentLevel",
+          players: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch level stats" });
+  }
+};
