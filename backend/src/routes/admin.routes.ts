@@ -19,9 +19,9 @@ router.post("/levels", protect, adminMiddleware, createLevel);
 router.get("/levels", protect, adminMiddleware, getLevels);
 router.put("/levels/:id", protect, adminMiddleware, updateLevel);
 router.delete("/levels/:id", protect, adminMiddleware, deleteLevel);
-router.post("/game/start", protect, adminMiddleware, startGame);
-router.post("/game/end", protect, adminMiddleware, endGame);
-router.get("/game/status", protect, adminMiddleware, getGameStatus);
+router.post("/gameplay/start", protect, adminMiddleware, startGame);
+router.post("/gameplay/end", protect, adminMiddleware, endGame);
+router.get("/gameplay/status", protect, adminMiddleware, getGameStatus);
 router.post("/reset-game", protect, adminMiddleware, resetGame);
 router.get("/export-leaderboard", protect, adminMiddleware, exportLeaderboard);
 

@@ -9,7 +9,7 @@ app.use(express.json());
 
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
-app.use("/game", gameRoutes);
+app.use("/gameplay", gameRoutes);
 app.use("/admin", adminRoutes);
 
 export default app;
