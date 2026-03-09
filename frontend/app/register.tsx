@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { router } from "expo-router";
 import { register } from "../src/services/authService";
 
@@ -35,36 +28,45 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+    <View className="flex-1 justify-center px-6 bg-white">
+      <Text className="text-3xl font-bold text-center mb-10">
+        Register
+      </Text>
 
       <TextInput
         placeholder="Name"
-        style={styles.input}
+        className="border border-gray-300 rounded-lg p-4 mb-4"
         value={name}
         onChangeText={setName}
       />
 
       <TextInput
         placeholder="Email"
-        style={styles.input}
+        className="border border-gray-300 rounded-lg p-4 mb-4"
+        autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
-        autoCapitalize="none"
       />
 
       <TextInput
         placeholder="Password"
-        style={styles.input}
+        className="border border-gray-300 rounded-lg p-4 mb-6"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
 
-      <Button title="Register" onPress={handleRegister} />
+      <TouchableOpacity
+        onPress={handleRegister}
+        className="bg-green-600 p-4 rounded-lg"
+      >
+        <Text className="text-white text-center font-semibold text-lg">
+          Register
+        </Text>
+      </TouchableOpacity>
 
       <Text
-        style={styles.link}
+        className="text-center text-blue-600 mt-6"
         onPress={() => router.push("/login")}
       >
         Already have an account? Login
@@ -72,32 +74,3 @@ export default function RegisterScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 30,
-    textAlign: "center",
-  },
-
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    marginBottom: 15,
-    borderRadius: 8,
-  },
-
-  link: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "blue",
-  },
-});

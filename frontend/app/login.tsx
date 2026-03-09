@@ -1,12 +1,5 @@
 import { useState, useContext } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { router } from "expo-router";
 import { login as loginAPI } from "../src/services/authService";
 import { AuthContext } from "../src/context/AuthContext";
@@ -35,12 +28,14 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <View className="flex-1 justify-center px-6 bg-white">
+      <Text className="text-3xl font-bold text-center mb-10">
+        Login
+      </Text>
 
       <TextInput
         placeholder="Email"
-        style={styles.input}
+        className="border border-gray-300 rounded-lg p-4 mb-4"
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
@@ -48,46 +43,27 @@ export default function LoginScreen() {
 
       <TextInput
         placeholder="Password"
-        style={styles.input}
+        className="border border-gray-300 rounded-lg p-4 mb-6"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
 
-      <Button title="Login" onPress={handleLogin} />
+      <TouchableOpacity
+        onPress={handleLogin}
+        className="bg-blue-600 p-4 rounded-lg"
+      >
+        <Text className="text-white text-center font-semibold text-lg">
+          Login
+        </Text>
+      </TouchableOpacity>
 
-      <Text style={styles.link} onPress={() => router.push("/register")}>
+      <Text
+        className="text-center text-blue-600 mt-6"
+        onPress={() => router.push("/register")}
+      >
         Dont have an account? Register
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 30,
-    textAlign: "center",
-  },
-
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    marginBottom: 15,
-    borderRadius: 8,
-  },
-
-  link: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "blue",
-  },
-});
