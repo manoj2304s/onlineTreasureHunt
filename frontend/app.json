@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Treasure Hunt Player",
+    "slug": "treasure-hunt-player",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "treasure-hunt-player",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
