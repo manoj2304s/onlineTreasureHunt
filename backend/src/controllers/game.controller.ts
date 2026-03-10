@@ -3,6 +3,7 @@ import Level from "../models/level.model";
 import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
 import User from "../models/user.model";
+import { io } from "../index";
 
 export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
@@ -120,6 +121,15 @@ export const submitAnswer = async (req: Request, res: Response) => {
     if (!nextLevel) {
       user.gameCompletedAt = new Date();
       await user.save();
+    }
+
+    const leaderboard = await User.find()
+      .sort({ currentLevel: -1, penaltyTime: 1 })
+      .select("name currentLevel penaltyTime gameCompletedAt");
+
+    io.emit("leaderboard:update", leaderboard);  
+
+    if (!nextLevel) {
       return res.json({
         gameCompleted: true,
         message: "Congratulations! You completed the treasure hunt!",
