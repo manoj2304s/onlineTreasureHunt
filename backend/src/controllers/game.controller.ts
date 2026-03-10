@@ -58,6 +58,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
     if (!user.locationUnlocked) {
       return res.status(403).json({
         message: "Scan the location QR before answering",
+        locationLocked: true,
       });
     }
 

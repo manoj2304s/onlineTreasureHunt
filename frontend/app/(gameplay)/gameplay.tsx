@@ -34,11 +34,17 @@ export default function GameplayScreen() {
     const submitAnswer = async (answer: string) => {
         try {
             const res = await postSubmitAnswer(answer);
+            console.log("Submit Answer Response:", res);
+            if (res.gameCompleted) {
+                router.replace("/completed");
+                return;
+            }
 
-            if (res?.locationLocked) {
+            if (res.locationLocked === 403) {
                 router.replace("/location");
                 return;
             }
+
             router.replace("/location");
             setAnswer("");
         } catch (err: any) {
