@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 
 export const createLevel = async (req: Request, res: Response) => {
   try {
-    const { levelNumber, question, hint, answer, qrCode } = req.body;
+    const { levelNumber, question, hint, answer, qrCode , location} = req.body;
 
     const answerHash = await bcrypt.hash(answer.toLowerCase().trim(), 10);
 
@@ -24,6 +24,7 @@ export const createLevel = async (req: Request, res: Response) => {
       hint,
       answerHash,
       qrCode,
+      location,
     });
 
     await level.save();

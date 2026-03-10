@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { getCurrentLevel, getHint, postSubmitAnswer } from "@/src/services/gameplayService";
+import { router } from "expo-router";
 
 export default function GameplayScreen() {
     const [level, setLevel] = useState<any>(null);
@@ -12,8 +13,11 @@ export default function GameplayScreen() {
             const res = await getCurrentLevel();
             setLevel(res);
         } catch (err: any) {
-            if (err.response?.status === 403) {
-                Alert.alert("Location Locked", err.response.data.message);
+
+            const data = err.response?.data;
+
+            if (data?.locationLocked) {
+                router.replace("/location");
                 return;
             }
 
@@ -30,17 +34,22 @@ export default function GameplayScreen() {
     const submitAnswer = async (answer: string) => {
         try {
             const res = await postSubmitAnswer(answer);
-            console.log("ANSWER RESPONSE:", res);
-            if (res.correct === false) {
-                Alert.alert(res.message);
+
+            if (res?.locationLocked) {
+                router.replace("/location");
                 return;
             }
-            Alert.alert("Correct!");
-
+            router.replace("/location");
             setAnswer("");
-            fetchLevel();
         } catch (err: any) {
-            Alert.alert("Wrong Answer", err.response?.data?.message || "Try again");
+            const data = err.response?.data;
+
+            if (data?.locationLocked) {
+                router.replace("/location");
+                return;
+            }
+
+            Alert.alert("Wrong Answer", data?.message || "Try again");
         }
     };
 

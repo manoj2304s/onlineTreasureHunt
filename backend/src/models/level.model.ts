@@ -7,6 +7,10 @@ const levelSchema = new mongoose.Schema(
     answerHash: { type: String, required: true },
     hint: { type: String },
     qrCode: { type: String, required: true },
+    location: {
+      latitude: { type: Number, required: true },
+      longitude: { type: Number, required: true },
+    }
   },
   { timestamps: true },
 );

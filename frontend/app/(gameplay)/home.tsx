@@ -20,9 +20,10 @@ export default function HomeScreen() {
             setPlayerName(userRes.username);
 
             const levelRes = await getCurrentLevel();
+            
             setCurrentLevel(levelRes.levelNumber);
         } catch (err) {
-            console.log(err);
+            console.log("Dashboard error:", err);
         } finally {
             setLoading(false);
         }

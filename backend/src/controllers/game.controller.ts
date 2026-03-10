@@ -16,13 +16,6 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
       });
     }
 
-    if (!user.locationUnlocked) {
-      return res.status(403).json({
-        message: "Reach the location and scan the QR first",
-        locationLocked: true,
-      });
-    }
-
     const level = await Level.findOne({
       levelNumber: user.currentLevel,
     });
@@ -34,6 +27,7 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
       levelNumber: level.levelNumber,
       question: level.question,
       hint: level.hint,
+      location: level.location,
     });
   } catch (error) {
     console.error("Error fetching current level:", error);
@@ -124,7 +118,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
     });
     if (!nextLevel) {
       user.gameCompletedAt = new Date();
-
+      await user.save();
       return res.json({
         correct: true,
         message: "Congratulations! You completed the treasure hunt!",
@@ -259,7 +253,7 @@ export const unlockLocation = async (req: Request, res: Response) => {
         message: "Level not found",
       });
     }
-
+    console.log("Expected QR Code:", level);
     if (qrCode !== level.qrCode) {
       return res.status(400).json({
         message: "Invalid QR code",
