@@ -120,7 +120,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
       user.gameCompletedAt = new Date();
       await user.save();
       return res.json({
-        correct: true,
+        gameCompleted: true,
         message: "Congratulations! You completed the treasure hunt!",
       });
     }
