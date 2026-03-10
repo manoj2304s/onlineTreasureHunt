@@ -4,6 +4,7 @@ import healthRoutes from "./routes/health.routes";
 import authRoutes from "./routes/auth.routes";
 import gameRoutes from "./routes/game.routes";
 import adminRoutes from "./routes/admin.routes";
+import adminMonitorRoutes from "./routes/admin.monitor.routes";
 
 const app = express();
 app.use(
@@ -18,6 +19,7 @@ app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
 app.use("/gameplay", gameRoutes);
 app.use("/admin", adminRoutes);
+app.use("/admin", adminMonitorRoutes);
 
 export default app;
 

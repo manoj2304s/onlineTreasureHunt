@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
+import { GameConfig } from "../models/gameConfig.model";
 
 export const getGameStats = async (req: Request, res: Response) => {
   try {
@@ -13,6 +14,8 @@ export const getGameStats = async (req: Request, res: Response) => {
       gameCompletedAt: { $ne: null },
     });
 
+    const config = await GameConfig.findById("game-config");
+
     const levels = await User.find().select("currentLevel");
 
     const maxLevel = Math.max(...levels.map((u) => u.currentLevel || 1));
@@ -22,6 +25,7 @@ export const getGameStats = async (req: Request, res: Response) => {
       playersStarted,
       playersCompleted,
       mostReachedLevel: maxLevel,
+      gameStatus: config?.status
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch game stats" });
