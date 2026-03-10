@@ -3,6 +3,7 @@ import app from "./app";
 import connectDB from "./config/database";
 import http from "http";
 import { Server } from "socket.io";
+import { getLeaderboardService } from "./services/leaderboard.service";
 
 dotenv.config();
 
@@ -16,9 +17,9 @@ export const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
-  console.log("Player connected:", socket.id);
-
+io.on("connection", async (socket) => {
+  const leaderboard = await getLeaderboardService();
+  socket.emit("leaderboard:update", leaderboard);
   socket.on("disconnect", () => {
     console.log("Player disconnected:", socket.id);
   });

@@ -4,6 +4,7 @@ import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
 import User from "../models/user.model";
 import { io } from "../index";
+import { getLeaderboardService } from "../services/leaderboard.service";
 
 export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
@@ -123,11 +124,9 @@ export const submitAnswer = async (req: Request, res: Response) => {
       await user.save();
     }
 
-    const leaderboard = await User.find()
-      .sort({ currentLevel: -1, penaltyTime: 1 })
-      .select("name currentLevel penaltyTime gameCompletedAt");
+    const leaderboard = await getLeaderboardService();
 
-    io.emit("leaderboard:update", leaderboard);  
+    io.emit("leaderboard:update", leaderboard);
 
     if (!nextLevel) {
       return res.json({
@@ -151,29 +150,12 @@ export const submitAnswer = async (req: Request, res: Response) => {
 
 export const getLeaderboard = async (req: Request, res: Response) => {
   try {
-    const users = await User.find({
-      gameCompletedAt: { $ne: null },
-    }).select("username gameStartedAt gameCompletedAt penaltyTime");
-
-    const leaderboard = users.map((user) => {
-      const baseTime =
-        (user.gameCompletedAt?.getTime() ?? 0) -
-        (user.gameStartedAt?.getTime() ?? 0);
-
-      const finalTime = baseTime + user.penaltyTime * 1000;
-
-      return {
-        username: user.username,
-        time: finalTime,
-      };
-    });
-
-    leaderboard.sort((a, b) => a.time - b.time);
+    const leaderboard = await getLeaderboardService();
 
     res.json(leaderboard);
   } catch (error) {
     res.status(500).json({
-      message: "Server error",
+      message: "Failed to fetch leaderboard",
     });
   }
 };
