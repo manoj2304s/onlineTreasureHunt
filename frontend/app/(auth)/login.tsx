@@ -1,8 +1,8 @@
 import { useState, useContext } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { router } from "expo-router";
-import { login as loginAPI } from "../src/services/authService";
-import { AuthContext } from "../src/context/AuthContext";
+import { login as loginAPI } from "@/src/services/authService";
+import { AuthContext } from "@/src/context/AuthContext";
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
@@ -16,7 +16,7 @@ export default function LoginScreen() {
 
       await login(res.token);
 
-      router.replace("/gameplay");
+      router.replace("/home");
     } catch (error: any) {
       console.log(error.response?.data || error.message);
 

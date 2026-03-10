@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import API from "@/src/api/axios";
+import { getCurrentLevel, getHint, postSubmitAnswer } from "@/src/services/gameplayService";
 
 export default function GameplayScreen() {
     const [level, setLevel] = useState<any>(null);
@@ -9,13 +9,15 @@ export default function GameplayScreen() {
 
     const fetchLevel = async () => {
         try {
-            const res = await API.get("/gameplay/current-level");
-            setLevel(res.data);
+            const res = await getCurrentLevel();
+            setLevel(res);
         } catch (err: any) {
-            Alert.alert(
-                "Error",
-                err.response?.data?.message || "Failed to load level",
-            );
+            if (err.response?.status === 403) {
+                Alert.alert("Location Locked", err.response.data.message);
+                return;
+            }
+
+            Alert.alert("Error", "Failed to load level");
         } finally {
             setLoading(false);
         }
@@ -25,11 +27,15 @@ export default function GameplayScreen() {
         fetchLevel();
     }, []);
 
-    const submitAnswer = async () => {
+    const submitAnswer = async (answer: string) => {
         try {
-            const res = await API.post("/gameplay/submit-answer", { answer });
-
-            Alert.alert("Correct!", res.data.message);
+            const res = await postSubmitAnswer(answer);
+            console.log("ANSWER RESPONSE:", res);
+            if (res.correct === false) {
+                Alert.alert(res.message);
+                return;
+            }
+            Alert.alert("Correct!");
 
             setAnswer("");
             fetchLevel();
@@ -40,9 +46,9 @@ export default function GameplayScreen() {
 
     const requestHint = async () => {
         try {
-            const res = await API.post("/gameplay/hint");
+            const res = await getHint();
 
-            Alert.alert("Hint", res.data.hint);
+            Alert.alert("Hint", res.hint);
         } catch (err: any) {
             Alert.alert(
                 "Hint Error",
@@ -77,7 +83,7 @@ export default function GameplayScreen() {
             />
 
             <TouchableOpacity
-                onPress={submitAnswer}
+                onPress={() => submitAnswer(answer)}
                 className="bg-blue-600 p-4 rounded-lg mb-4"
             >
                 <Text className="text-white text-center font-semibold">

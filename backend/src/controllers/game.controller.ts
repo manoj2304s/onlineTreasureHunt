@@ -19,6 +19,7 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
     if (!user.locationUnlocked) {
       return res.status(403).json({
         message: "Reach the location and scan the QR first",
+        locationLocked: true,
       });
     }
 
@@ -43,7 +44,6 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
 export const submitAnswer = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-
     const config = await GameConfig.findById("game-config");
     if (!config || config.status !== "active") {
       return res.status(403).json({
@@ -117,13 +117,13 @@ export const submitAnswer = async (req: Request, res: Response) => {
     user.currentLevel += 1;
     user.locationUnlocked = false;
     user.wrongAttempts = 0;
+    await user.save();
 
     const nextLevel = await Level.findOne({
       levelNumber: user.currentLevel,
     });
     if (!nextLevel) {
       user.gameCompletedAt = new Date();
-      await user.save();
 
       return res.json({
         correct: true,
@@ -133,13 +133,13 @@ export const submitAnswer = async (req: Request, res: Response) => {
 
     res.json({
       correct: true,
-      nextLevel: nextLevel.levelNumber,
+      levelNumber: nextLevel.levelNumber,
       question: nextLevel.question,
       hint: nextLevel.hint,
     });
   } catch (error) {
     res.status(500).json({
-      message: "Server error",
+      message: `Server error ${error}`,
     });
   }
 };
@@ -214,7 +214,7 @@ export const getHint = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: "Server error",
+      message: `Server error ${error}`,
     });
   }
 };

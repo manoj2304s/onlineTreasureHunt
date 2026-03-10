@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 
 export const createLevel = async (req: Request, res: Response) => {
   try {
-    const { levelNumber, question, hint, answer } = req.body;
+    const { levelNumber, question, hint, answer, qrCode } = req.body;
 
     const answerHash = await bcrypt.hash(answer.toLowerCase().trim(), 10);
 
@@ -23,6 +23,7 @@ export const createLevel = async (req: Request, res: Response) => {
       question,
       hint,
       answerHash,
+      qrCode,
     });
 
     await level.save();
@@ -33,7 +34,7 @@ export const createLevel = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: "Server error",
+      message: `Server error ${error}`,
     });
   }
 };

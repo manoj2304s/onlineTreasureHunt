@@ -9,7 +9,7 @@ export default function Index() {
   useEffect(() => {
     if (!loading) {
       if (token) {
-        router.replace("/gameplay");
+        router.replace("/home");
       } else {
         router.replace("/login");
       }
