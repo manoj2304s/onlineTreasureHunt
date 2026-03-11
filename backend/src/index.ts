@@ -17,11 +17,19 @@ export const io = new Server(server, {
   },
 });
 
-io.on("connection", async (socket) => {
-  const leaderboard = await getLeaderboardService();
-  socket.emit("leaderboard:update", leaderboard);
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  getLeaderboardService()
+    .then((leaderboard) => {
+      socket.emit("leaderboard:update", leaderboard);
+    })
+    .catch((err) => {
+      console.error("Leaderboard error:", err);
+    });
+
   socket.on("disconnect", () => {
-    console.log("Player disconnected:", socket.id);
+    console.log("Socket disconnected:", socket.id);
   });
 });
 
