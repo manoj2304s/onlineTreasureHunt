@@ -3,10 +3,11 @@ import Level from "../models/level.model";
 import User from "../models/user.model";
 import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
+import { io } from "../index";
 
 export const createLevel = async (req: Request, res: Response) => {
   try {
-    const { levelNumber, question, hint, answer, qrCode , location} = req.body;
+    const { levelNumber, question, hint, answer, qrCode, location } = req.body;
 
     const answerHash = await bcrypt.hash(answer.toLowerCase().trim(), 10);
 
@@ -128,6 +129,8 @@ export const startGame = async (req: Request, res: Response) => {
       },
     );
 
+    io.emit("game:status", "active");
+
     res.json({
       message: "Game started successfully",
       startedAt: config?.startedAt,
@@ -160,6 +163,8 @@ export const endGame = async (req: Request, res: Response) => {
         returnDocument: "after",
       },
     );
+
+    io.emit("game:status", "finished");
 
     res.json({
       message: "Game ended successfully",
@@ -209,10 +214,11 @@ export const resetGame = async (req: Request, res: Response) => {
           currentLevel: 1,
           wrongAttempts: 0,
           lockUntil: null,
-          locationUnlocked: false,
+          locationUnlocked: true,
           gameStartedAt: null,
           gameCompletedAt: null,
           penaltyTime: 0,
+          hintUsedLevels: [],
         },
       },
     );
@@ -222,11 +228,13 @@ export const resetGame = async (req: Request, res: Response) => {
       {
         $set: {
           status: "inactive",
-          startTime: null,
-          endTime: null,
+          startedAt: null,
+          endedAt: null,
         },
       },
     );
+
+    io.emit("game:status", "inactive");
 
     res.json({
       message: "Game reset successfully",
