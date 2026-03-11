@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { socket } from "@/src/services/socket";
+import { getLeaderboard } from "@/src/services/leaderboardService";
 
 interface Player {
   rank: number;
@@ -14,16 +15,32 @@ export default function LiveLeaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
-    socket.on("leaderboard:update", (data: Player[]) => {
-      setPlayers(data);
-    });
+    const loadLeaderboard = async () => {
+      try {
+        const data = await getLeaderboard();
+        setPlayers(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch leaderboard:", error);
+      }
+    };
+
+    const handleLeaderboardUpdate = (data: Player[]) => {
+      setPlayers(Array.isArray(data) ? data : []);
+    };
+
+    loadLeaderboard();
+    socket.on("leaderboard:update", handleLeaderboardUpdate);
 
     return () => {
-      socket.off("leaderboard:update");
+      socket.off("leaderboard:update", handleLeaderboardUpdate);
     };
   }, []);
 
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds: number | null | undefined) => {
+    if (typeof seconds !== "number" || !Number.isFinite(seconds)) {
+      return "--:--";
+    }
+
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
