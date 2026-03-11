@@ -19,6 +19,11 @@ export default function GameplayScreen() {
     } catch (err: any) {
       const data = err.response?.data;
 
+      if (err.response?.status === 404) {
+        router.replace("/completed");
+        return;
+      }
+
       if (data?.locationLocked) {
         router.replace("/location");
         return;

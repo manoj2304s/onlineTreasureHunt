@@ -9,7 +9,9 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [playerName, setPlayerName] = useState("");
   const [currentLevel, setCurrentLevel] = useState<number | null>(null);
-  const [userLocationUnlocked, setUserLocationUnlocked] = useState<boolean>(true);
+  const [userLocationUnlocked, setUserLocationUnlocked] =
+    useState<boolean>(true);
+  const [isGameCompleted, setIsGameCompleted] = useState(false);
 
   useEffect(() => {
     fetchDashboard();
@@ -20,6 +22,14 @@ export default function HomeScreen() {
       const userRes = await getMe();
       setPlayerName(userRes.username);
       setUserLocationUnlocked(userRes.locationUnlocked);
+      const completed = Boolean(userRes.gameCompletedAt);
+      setIsGameCompleted(completed);
+
+      if (completed) {
+        const finalLevel = Math.max((userRes.currentLevel ?? 1) - 1, 1);
+        setCurrentLevel(finalLevel);
+        return;
+      }
 
       const levelRes = await getCurrentLevel();
 
@@ -54,13 +64,20 @@ export default function HomeScreen() {
 
       <TouchableOpacity
         className="bg-blue-500 px-6 py-3 rounded-lg mb-4"
-        onPress={() =>
-          userLocationUnlocked
-            ? router.replace("/gameplay")
-            : router.replace("/location")
-        }
+        onPress={() => {
+          if (isGameCompleted) {
+            router.replace("/completed");
+            return;
+          }
+
+          if (userLocationUnlocked === false) {
+            router.replace("/gameplay");
+          } else {
+            router.replace("/location");
+          }
+        }}
       >
-        <Text className="text-white text-lg">Continue Game</Text>
+        <Text className="text-white text-lg">Continue</Text>
       </TouchableOpacity>
 
       <TouchableOpacity

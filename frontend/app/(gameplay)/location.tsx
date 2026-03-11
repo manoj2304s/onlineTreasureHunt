@@ -22,12 +22,17 @@ export default function LocationScreen() {
     const init = async () => {
       try {
         const level = await getCurrentLevel();
-        console.log("Level data:", level);
+
         if (isMounted) {
           await startTracking(level.location);
         }
       } catch (err: any) {
-        console.error(err.response?.data ?? err.message);
+  
+        if (err.response?.status === 404) {
+          router.replace("/completed");
+          return;
+        }
+
         if (isMounted) {
           setError("Failed to load level. Please try again.");
         }
@@ -104,7 +109,7 @@ export default function LocationScreen() {
       {distance !== null && distance < 30 && (
         <TouchableOpacity
           className="bg-green-600 px-6 py-3 rounded-lg"
-          onPress={() => router.push("/scan")}
+          onPress={() => router.replace("/scan")}
         >
           <Text className="text-white text-lg">Scan QR Code</Text>
         </TouchableOpacity>
