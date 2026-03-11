@@ -39,7 +39,7 @@ export const resetPlayer = async (req: Request, res: Response) => {
     player.hintUsedLevels = [];
     player.gameStartedAt = null;
     player.gameCompletedAt = null;
-    player.locationUnlocked = false;
+    player.locationUnlocked = true;
     player.lockedUntil = null;
 
     await player.save();
