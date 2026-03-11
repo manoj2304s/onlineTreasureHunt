@@ -1,5 +1,5 @@
 export type Player = {
-  _id: string;
+  userId: string;
   username: string;
   currentLevel: number;
   wrongAttempts: number;
