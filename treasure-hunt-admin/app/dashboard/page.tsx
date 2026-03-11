@@ -18,8 +18,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const res = await API.get("/admin/stats");
-      setStats(res.data);
+      try {
+        const res = await API.get("/admin/stats");
+        setStats(res.data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+      }
     };
 
     fetchStats();
