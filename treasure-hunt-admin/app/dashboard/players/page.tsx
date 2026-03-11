@@ -14,11 +14,19 @@ export default function PlayersPage() {
       const res = await API.get("/admin/players");
       setPlayers(res.data);
     };
+
     fetchPlayers();
-    socket.on("player:update", (updatedPlayer: Player) => {
-      setPlayers((prev) =>
-        prev.map((p) => (p.userId === updatedPlayer.userId ? updatedPlayer : p)),
-      );
+    
+    socket.on("player:update", (updatedPlayer) => {
+      setPlayers((prev) => {
+        const exists = prev.find((p) => p.userId === updatedPlayer.userId);
+        if (exists) {
+          return prev.map((p) =>
+            p.userId === updatedPlayer.userId ? { ...p, ...updatedPlayer } : p,
+          );
+        }
+        return [...prev, updatedPlayer];
+      });
     });
     return () => {
       socket.off("player:update");
