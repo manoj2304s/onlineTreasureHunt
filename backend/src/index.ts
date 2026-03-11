@@ -15,6 +15,7 @@ export const io = new Server(server, {
   cors: {
     origin: "*",
   },
+  transports: ["websocket"],
 });
 
 io.on("connection", (socket) => {
