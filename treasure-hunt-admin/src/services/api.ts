@@ -14,4 +14,19 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("adminToken");
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login?reason=session_expired";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default API;
