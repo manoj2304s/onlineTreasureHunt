@@ -48,6 +48,12 @@ export default function GameplayScreen() {
         return;
       }
 
+      if (res.correct === false) {
+        Alert.alert(res.message || "Wrong answer, try again");
+        setAnswer("");
+        return;
+      }
+
       router.replace("/location");
       setAnswer("");
     } catch (err: any) {
