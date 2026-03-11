@@ -70,7 +70,7 @@ export default function HomeScreen() {
             return;
           }
 
-          if (userLocationUnlocked === false) {
+          if (userLocationUnlocked === false || currentLevel === 1) {
             router.replace("/gameplay");
           } else {
             router.replace("/location");
