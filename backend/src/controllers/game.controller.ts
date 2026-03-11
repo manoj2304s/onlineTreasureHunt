@@ -4,6 +4,7 @@ import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
 import { io } from "../index";
 import { getLeaderboardService } from "../services/leaderboard.service";
+import { createActivity } from "../services/activity.service";
 
 export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
@@ -13,6 +14,7 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
     if (!config || config.status !== "active") {
       return res.status(403).json({
         message: "Game is not currently active",
+        status: "inactive",
       });
     }
 
@@ -43,6 +45,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
     if (!config || config.status !== "active") {
       return res.status(403).json({
         message: "Game is not currently active",
+        status: "inactive",
       });
     }
 
@@ -101,14 +104,37 @@ export const submitAnswer = async (req: Request, res: Response) => {
         const leaderboard = await getLeaderboardService();
         io.emit("leaderboard:update", leaderboard);
 
+        await createActivity(
+          "LOST_LIFE",
+          `${user.username} lost all lives at level ${level.levelNumber}`,
+          user.username,
+          level.levelNumber,
+        );
+
+        io.emit("activity:update", {
+          message: `${user.username} lost all lives at level ${level.levelNumber}`,
+        });
+
         return res.json({
           correct: false,
           message:
             "3 wrong attempts. 2 minute penalty applied. Try again in 10 seconds.",
+          WrongAttempts: user.wrongAttempts,
         });
       }
 
       await user.save();
+
+      await createActivity(
+        "INCORRECT_ANSWER",
+        `${user.username} provided an incorrect answer for level ${level.levelNumber}`,
+        user.username,
+        level.levelNumber,
+      );
+
+      io.emit("activity:update", {
+        message: `${user.username} provided an incorrect answer for level ${level.levelNumber}`,
+      });
 
       return res.json({
         correct: false,
@@ -126,6 +152,15 @@ export const submitAnswer = async (req: Request, res: Response) => {
 
     if (!nextLevel) {
       user.gameCompletedAt = new Date();
+      await createActivity(
+        "COMPLETED_LEVEL",
+        `${user.username} Completed game`,
+        user.username,
+      );
+
+      io.emit("activity:update", {
+        message: `${user.username} completed the game`,
+      });
     }
 
     await user.save();
@@ -139,6 +174,17 @@ export const submitAnswer = async (req: Request, res: Response) => {
         message: "Congratulations! You completed the treasure hunt!",
       });
     }
+
+    await createActivity(
+      "LEVEL_COMPLETED",
+      `${user.username} completed level ${level.levelNumber}`,
+      user.username,
+      level.levelNumber,
+    );
+
+    io.emit("activity:update", {
+      message: `${user.username} completed level ${level.levelNumber}`,
+    });
 
     io.emit("player:update", {
       userId: user._id,
@@ -181,6 +227,7 @@ export const getHint = async (req: Request, res: Response) => {
     if (!config || config.status !== "active") {
       return res.status(403).json({
         message: "Game is not currently active",
+        status: "inactive",
       });
     }
 
@@ -207,6 +254,17 @@ export const getHint = async (req: Request, res: Response) => {
       penaltyApplied = true;
       await user.save();
     }
+
+    await createActivity(
+      "HINT_REQUESTED",
+      `${user.username} requested a hint for level ${level.levelNumber}`,
+      user.username,
+      level.levelNumber,
+    );
+
+    io.emit("activity:update", {
+      message: `${user.username} requested a hint for level ${level.levelNumber}`,
+    });
 
     res.json({
       hint: level.hint,
@@ -235,6 +293,7 @@ export const unlockLocation = async (req: Request, res: Response) => {
     if (!config || config.status !== "active") {
       return res.status(403).json({
         message: "Game is not currently active",
+        status: "inactive",
       });
     }
 
@@ -268,6 +327,17 @@ export const unlockLocation = async (req: Request, res: Response) => {
 
     user.locationUnlocked = true;
     await user.save();
+
+    await createActivity(
+      "LOCATION_UNLOCKED",
+      `${user.username} unlocked location for level ${level.levelNumber}`,
+      user.username,
+      level.levelNumber,
+    );
+
+    io.emit("activity:update", {
+      message: `${user.username} unlocked location for level ${level.levelNumber}`,
+    });
 
     res.json({
       message: "Location verified. Question unlocked.",

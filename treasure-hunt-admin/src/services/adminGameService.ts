@@ -19,3 +19,8 @@ export const getGameStatus = async () => {
   const res = await API.get("/admin/gameplay/status");
   return res.data;
 };
+
+export const getActivities = async () => {
+  const res = await API.get("/admin/activities");
+  return res.data;
+};

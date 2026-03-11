@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
 import { GameConfig } from "../models/gameConfig.model";
+import { getRecentActivities } from "../services/activity.service";
 
 export const getGameStats = async (req: Request, res: Response) => {
   try {
@@ -25,7 +26,7 @@ export const getGameStats = async (req: Request, res: Response) => {
       playersStarted,
       playersCompleted,
       mostReachedLevel: maxLevel,
-      gameStatus: config?.status
+      gameStatus: config?.status,
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch game stats" });
@@ -72,3 +73,13 @@ export const getLevelAnalytics = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to fetch level stats" });
   }
 };
+
+export const getActivities = async (req: Request, res: Response) => {
+  try {
+    const activities = await getRecentActivities();
+    res.json(activities);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch activities" });
+  } 
+};
+

@@ -2,22 +2,39 @@
 
 import { useEffect, useState } from "react";
 import { socket } from "@/src/services/socket";
+import { getActivities } from "../services/adminGameService";
 
 type Activity = {
-  username: string;
-  currentLevel: number;
+  _id?: string;
+  message: string;
+  username?: string;
+  level?: number;
+  createdAt?: string;
 };
 
 export default function ActivityFeed() {
   const [activities, setActivities] = useState<Activity[]>([]);
 
   useEffect(() => {
-    socket.on("player:update", (player: Activity) => {
-      setActivities((prev) => [player, ...prev.slice(0, 9)]);
-    });
+    const loadActivities = async () => {
+      try {
+        const activity = await getActivities();
+        setActivities(Array.isArray(activity) ? activity : []);
+      } catch (error) {
+        console.error("Failed to fetch activities:", error);
+      }
+    };
+
+    const handleActivityUpdate = (activity: Activity) => {
+      setActivities((prev) => [activity, ...prev].slice(0, 20));
+    };
+
+    loadActivities();
+
+    socket.on("activity:update", handleActivityUpdate);
 
     return () => {
-      socket.off("player:update");
+      socket.off("activity:update", handleActivityUpdate);
     };
   }, []);
 
@@ -27,9 +44,8 @@ export default function ActivityFeed() {
 
       <ul className="space-y-2">
         {activities.map((a, i) => (
-          <li key={i} className="text-sm text-black/80">
-            <span className="font-semibold">{a.username}</span> reached level{" "}
-            {a.currentLevel}
+          <li key={a._id || i} className="text-sm text-black/80">
+            {a.message}
           </li>
         ))}
       </ul>
