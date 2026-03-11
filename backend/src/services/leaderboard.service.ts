@@ -27,5 +27,19 @@ export const getLeaderboardService = async () => {
     };
   });
 
-  return leaderboard;
+  leaderboard.sort((a, b) => {
+    if (b.currentLevel !== a.currentLevel) {
+      return b.currentLevel - a.currentLevel;
+    }
+
+    if (a.time === null) return 1;
+    if (b.time === null) return -1;
+
+    return a.time - b.time;
+  });
+
+  return leaderboard.map((player, index) => ({
+    rank: index + 1,
+    ...player,
+  }));
 };
