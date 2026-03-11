@@ -1,14 +1,30 @@
-import { useState, useContext } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { router } from "expo-router";
+import { useState, useContext, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { login as loginAPI } from "@/src/services/authService";
 import { AuthContext } from "@/src/context/AuthContext";
+import { useToast } from "react-native-toast-notifications";
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
+  const { reason } = useLocalSearchParams<{ reason?: string | string[] }>();
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    const reasonValue = Array.isArray(reason) ? reason[0] : reason;
+
+    if (reasonValue === "session_expired") {
+      toast.show("Session expired. Please log in again.", {
+        type: "danger",
+        placement: "top",
+      });
+
+      router.replace("/login");
+    }
+  }, [reason, toast]);
 
   const handleLogin = async () => {
     try {
@@ -19,11 +35,10 @@ export default function LoginScreen() {
       router.replace("/home");
     } catch (error: any) {
       console.log(error.response?.data || error.message);
-
-      Alert.alert(
-        "Login Failed",
-        error.response?.data?.message || "Something went wrong"
-      );
+      toast.show(error.response?.data?.message || "Login failed", {
+        type: "danger",
+        placement: "top",
+      });
     }
   };
 
