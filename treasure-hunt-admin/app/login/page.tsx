@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 import API from "@/src/services/api";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+
+    if (reason === "session_expired") {
+      toast.error("Session expired. Please log in again.");
+      router.replace("/login");
+    }
+  }, [searchParams, router]);
 
   const handleLogin = async () => {
     try {
@@ -21,8 +32,8 @@ export default function LoginPage() {
       localStorage.setItem("adminToken", token);
 
       router.push("/dashboard");
-    } catch (error) {
-      alert(`Login failed ${error}`);
+    } catch {
+      toast.error("Login failed. Please check your credentials.");
     }
   };
 
