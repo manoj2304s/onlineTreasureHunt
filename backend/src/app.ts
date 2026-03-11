@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.routes";
 import gameRoutes from "./routes/game.routes";
 import adminRoutes from "./routes/admin.routes";
 import adminMonitorRoutes from "./routes/admin.monitor.routes";
+import adminControlRoutes from "./routes/admin.control.routes";
 
 const app = express();
 app.use(
@@ -20,7 +21,6 @@ app.use("/auth", authRoutes);
 app.use("/gameplay", gameRoutes);
 app.use("/admin", adminRoutes);
 app.use("/admin", adminMonitorRoutes);
+app.use("/admin", adminControlRoutes);
 
 export default app;
-
-

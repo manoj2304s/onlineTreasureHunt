@@ -39,6 +39,7 @@ export const getPlayerProgress = async (req: Request, res: Response) => {
       .sort({ currentLevel: -1 });
 
     const formatted = players.map((p) => ({
+      userId: p._id,
       username: p.username,
       email: p.email,
       currentLevel: p.currentLevel,

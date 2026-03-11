@@ -2,14 +2,12 @@ import { Request, Response } from "express";
 import Level from "../models/level.model";
 import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
-import User from "../models/user.model";
 import { io } from "../index";
 import { getLeaderboardService } from "../services/leaderboard.service";
 
 export const getCurrentLevel = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-
     const config = await GameConfig.findById("game-config");
 
     if (!config || config.status !== "active") {
@@ -24,6 +22,14 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
     if (!level) {
       return res.status(404).json({ message: "Current level not found" });
     }
+
+    io.emit("player:update", {
+      userId: user._id,
+      username: user.username,
+      currentLevel: user.currentLevel,
+      wrongAttempts: user.wrongAttempts,
+      gameCompletedAt: user.gameCompletedAt,
+    });
 
     res.status(200).json({
       levelNumber: level.levelNumber,
