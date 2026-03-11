@@ -1,5 +1,13 @@
 import { io } from "socket.io-client";
 
-export const socket = io("http://192.168.1.5:5000", {
+export const socket = io(process.env.EXPO_PUBLIC_SOCKET_URL, {
   transports: ["websocket"],
+});
+
+socket.on("connect", () => {
+  console.log("Socket connected:", socket.id);
+});
+
+socket.on("disconnect", () => {
+  console.log("Socket disconnected");
 });
