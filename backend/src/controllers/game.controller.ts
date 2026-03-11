@@ -23,14 +23,6 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Current level not found" });
     }
 
-    io.emit("player:update", {
-      userId: user._id,
-      username: user.username,
-      currentLevel: user.currentLevel,
-      wrongAttempts: user.wrongAttempts,
-      gameCompletedAt: user.gameCompletedAt,
-    });
-
     res.status(200).json({
       levelNumber: level.levelNumber,
       question: level.question,
@@ -46,6 +38,7 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
 export const submitAnswer = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
+
     const config = await GameConfig.findById("game-config");
     if (!config || config.status !== "active") {
       return res.status(403).json({
@@ -71,16 +64,19 @@ export const submitAnswer = async (req: Request, res: Response) => {
     }
 
     const { answer } = req.body;
-    if (!answer) {
+
+    if (!answer || !answer.trim()) {
       return res.status(400).json({
         message: "Answer is required",
       });
     }
 
     const currentLevel = user.currentLevel;
+
     const level = await Level.findOne({
       levelNumber: currentLevel,
     });
+
     if (!level) {
       return res.status(404).json({
         message: "Level not found",
@@ -93,7 +89,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
     );
 
     if (!isCorrect) {
-      user.wrongAttempts += 1;
+      user.wrongAttempts = (user.wrongAttempts || 0) + 1;
 
       if (user.wrongAttempts >= 3) {
         user.penaltyTime += 120;
@@ -101,6 +97,9 @@ export const submitAnswer = async (req: Request, res: Response) => {
         user.wrongAttempts = 0;
 
         await user.save();
+
+        const leaderboard = await getLeaderboardService();
+        io.emit("leaderboard:update", leaderboard);
 
         return res.json({
           correct: false,
@@ -120,18 +119,18 @@ export const submitAnswer = async (req: Request, res: Response) => {
     user.currentLevel += 1;
     user.locationUnlocked = false;
     user.wrongAttempts = 0;
-    await user.save();
 
     const nextLevel = await Level.findOne({
       levelNumber: user.currentLevel,
     });
+
     if (!nextLevel) {
       user.gameCompletedAt = new Date();
-      await user.save();
     }
 
-    const leaderboard = await getLeaderboardService();
+    await user.save();
 
+    const leaderboard = await getLeaderboardService();
     io.emit("leaderboard:update", leaderboard);
 
     if (!nextLevel) {
@@ -141,14 +140,22 @@ export const submitAnswer = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    io.emit("player:update", {
+      userId: user._id,
+      username: user.username,
+      currentLevel: user.currentLevel,
+      wrongAttempts: user.wrongAttempts,
+      gameCompletedAt: user.gameCompletedAt,
+    });
+
+    return res.json({
       correct: true,
       levelNumber: nextLevel.levelNumber,
       question: nextLevel.question,
       hint: nextLevel.hint,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: `Server error ${error}`,
     });
   }
