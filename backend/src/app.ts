@@ -6,11 +6,16 @@ import gameRoutes from "./routes/game.routes";
 import adminRoutes from "./routes/admin.routes";
 import adminMonitorRoutes from "./routes/admin.monitor.routes";
 import adminControlRoutes from "./routes/admin.control.routes";
+import { env } from "./config/env";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/error.middleware";
 
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: env.CORS_ORIGIN,
     credentials: true,
   }),
 );
@@ -22,5 +27,7 @@ app.use("/gameplay", gameRoutes);
 app.use("/admin", adminRoutes);
 app.use("/admin", adminMonitorRoutes);
 app.use("/admin", adminControlRoutes);
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;
