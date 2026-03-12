@@ -1,107 +1,141 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { useMemo, useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 import { register } from "@/src/services/authService";
+import { TreasureBackground } from "@/src/components/ui/TreasureBackground";
+import { InlineBanner } from "@/src/components/ui/InlineBanner";
+import { useAppFeedback } from "@/src/hooks/useAppFeedback";
+import { isStrongEnoughPassword, isValidEmail } from "@/src/utils/validation";
 
 export default function RegisterScreen() {
+  const feedback = useAppFeedback();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+
+  const normalizedName = useMemo(() => name.trim(), [name]);
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const normalizedPassword = useMemo(() => password.trim(), [password]);
+
+  const validate = () => {
+    if (!normalizedName || !normalizedEmail || !normalizedPassword) {
+      return "All fields are required.";
+    }
+    if (normalizedName.length < 3) {
+      return "Name must be at least 3 characters.";
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      return "Please enter a valid email address.";
+    }
+    if (!isStrongEnoughPassword(normalizedPassword)) {
+      return "Password must be at least 6 characters.";
+    }
+    return null;
+  };
 
   const handleRegister = async () => {
-    const normalizedName = name.trim();
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedPassword = password.trim();
+    const error = validate();
+    setInlineError(error);
 
-    if (!normalizedName || !normalizedEmail || !normalizedPassword) {
-      Alert.alert("Registration Failed", "All fields are required");
+    if (error) {
+      feedback.showWarning(error);
       return;
     }
 
-    if (normalizedName.length < 3) {
-      Alert.alert("Registration Failed", "Name must be at least 3 characters long");
-      return;
-    }
-
-    if (normalizedPassword.length < 6) {
-      Alert.alert("Registration Failed", "Password must be at least 6 characters long");
-      return;
-    }
-
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
     try {
-      const res = await register(normalizedName, normalizedEmail, normalizedPassword);
-
-      console.log("REGISTER RESPONSE:", res);
-
-      Alert.alert("Success", "Account created successfully");
-
+      await register(normalizedName, normalizedEmail, normalizedPassword);
+      feedback.showSuccess("Account created successfully.");
       router.replace("/login");
-    } catch (error: any) {
-      console.log("REGISTER ERROR:", error.response?.data || error.message);
+    } catch (err: any) {
       const errorMessage =
-        error.response?.data?.message ||
-        (error.message === "Network Error"
-          ? "Cannot reach server. Check EXPO_PUBLIC_API_URL and use HTTPS or enable cleartext traffic for Android builds."
-          : error.message) ||
-        "Something went wrong";
+        err.response?.data?.message ||
+        (err.message === "Network Error"
+          ? "Cannot reach server. Check EXPO_PUBLIC_API_URL."
+          : err.message) ||
+        "Registration failed.";
 
-      Alert.alert(
-        "Registration Failed",
-        errorMessage
-      );
+      setInlineError(errorMessage);
+      feedback.showError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-3xl font-bold text-center mb-10">
-        Register
-      </Text>
-
-      <TextInput
-        placeholder="Name"
-        className="border border-gray-300 rounded-lg p-4 mb-4"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <TextInput
-        placeholder="Email"
-        className="border border-gray-300 rounded-lg p-4 mb-4"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        placeholder="Password"
-        className="border border-gray-300 rounded-lg p-4 mb-6"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      <TouchableOpacity
-        onPress={handleRegister}
-        disabled={isSubmitting}
-        className="bg-green-600 p-4 rounded-lg"
-      >
-        <Text className="text-white text-center font-semibold text-lg">
-          {isSubmitting ? "Creating account..." : "Register"}
+    <TreasureBackground className="flex-row items-center justify-center px-6">
+      <View className="w-full max-w-[420px] rounded-3xl border border-[#c48f57] bg-[#fff7e9] p-6">
+        <Text className="text-center text-4xl font-black text-[#5b3218]">
+          Register
         </Text>
-      </TouchableOpacity>
+        <Text className="mt-1 text-center text-sm text-[#8f5c31]">
+          Join the hunt
+        </Text>
 
-      <Text
-        className="text-center text-blue-600 mt-6"
-        onPress={() => router.push("/login")}
-      >
-        Already have an account? Login
-      </Text>
-    </View>
+        <TextInput
+          placeholder="Team Name"
+          placeholderTextColor="#9a7a55"
+          className="mt-6 rounded-xl border border-[#c48f57] bg-[#fffdf6] p-4 text-[#5b3218]"
+          value={name}
+          onChangeText={(text) => {
+            setName(text);
+            if (inlineError) setInlineError(null);
+          }}
+        />
+
+        <TextInput
+          placeholder="Email"
+          placeholderTextColor="#9a7a55"
+          className="mt-3 rounded-xl border border-[#c48f57] bg-[#fffdf6] p-4 text-[#5b3218]"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (inlineError) setInlineError(null);
+          }}
+        />
+
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor="#9a7a55"
+          className="mt-3 rounded-xl border border-[#c48f57] bg-[#fffdf6] p-4 text-[#5b3218]"
+          secureTextEntry
+          autoComplete="new-password"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (inlineError) setInlineError(null);
+          }}
+        />
+
+        {inlineError && (
+          <View className="mt-3">
+            <InlineBanner message={inlineError} tone="warning" />
+          </View>
+        )}
+
+        <TouchableOpacity
+          onPress={handleRegister}
+          disabled={isSubmitting}
+          className={`mt-4 rounded-xl p-4 ${isSubmitting ? "bg-[#c49a73]" : "bg-[#7a4a24]"}`}
+        >
+          <Text className="text-center text-lg font-bold text-white">
+            {isSubmitting ? "Creating account..." : "Register"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity className="mt-5" onPress={() => router.replace("/login")}>
+          <Text className="text-center font-semibold text-[#7a4a24]">
+            Already have an account? Login
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </TreasureBackground>
   );
 }

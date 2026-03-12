@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Treasure Hunt Player",
-    "slug": "treasure-hunt-player",
+    "name": "Online Treasure Hunt",
+    "slug": "online treasure hunt",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "treasure-hunt-player",
+    "scheme": "online-treasure-hunt",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

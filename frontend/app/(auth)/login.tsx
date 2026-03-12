@@ -1,108 +1,133 @@
-import { useState, useContext, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { login as loginAPI } from "@/src/services/authService";
 import { AuthContext } from "@/src/context/AuthContext";
-import { useToast } from "react-native-toast-notifications";
+import { TreasureBackground } from "@/src/components/ui/TreasureBackground";
+import { InlineBanner } from "@/src/components/ui/InlineBanner";
+import { useAppFeedback } from "@/src/hooks/useAppFeedback";
+import { isValidEmail } from "@/src/utils/validation";
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
   const { reason } = useLocalSearchParams<{ reason?: string | string[] }>();
-  const toast = useToast();
+  const feedback = useAppFeedback();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const normalizedPassword = useMemo(() => password.trim(), [password]);
 
   useEffect(() => {
     const reasonValue = Array.isArray(reason) ? reason[0] : reason;
-
     if (reasonValue === "session_expired") {
-      toast.show("Session expired. Please log in again.", {
-        type: "danger",
-        placement: "top",
-      });
-
+      feedback.showWarning("Session expired. Please log in again.");
       router.replace("/login");
     }
-  }, [reason, toast]);
+  }, [feedback, reason]);
+
+  const validate = () => {
+    if (!normalizedEmail || !normalizedPassword) {
+      return "Email and password are required.";
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      return "Please enter a valid email address.";
+    }
+    return null;
+  };
 
   const handleLogin = async () => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedPassword = password.trim();
+    const error = validate();
+    setInlineError(error);
 
-    if (!normalizedEmail || !normalizedPassword) {
-      toast.show("Email and password are required", {
-        type: "danger",
-        placement: "top",
-      });
+    if (error) {
+      feedback.showWarning(error);
       return;
     }
 
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
     try {
       const res = await loginAPI(normalizedEmail, normalizedPassword);
-
       await login(res.token);
-
+      feedback.showSuccess("Welcome back.");
       router.replace("/home");
-    } catch (error: any) {
-      console.log(error.response?.data || error.message);
+    } catch (err: any) {
       const errorMessage =
-        error.response?.data?.message ||
-        (error.message === "Network Error"
-          ? "Cannot reach server. Check EXPO_PUBLIC_API_URL and use HTTPS or enable cleartext traffic for Android builds."
-          : error.message) ||
-        "Login failed";
+        err.response?.data?.message ||
+        (err.message === "Network Error"
+          ? "Cannot reach server. Check EXPO_PUBLIC_API_URL."
+          : err.message) ||
+        "Login failed.";
 
-      toast.show(errorMessage, {
-        type: "danger",
-        placement: "top",
-      });
+      setInlineError(errorMessage);
+      feedback.showError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-3xl font-bold text-center mb-10">
-        Login
-      </Text>
-
-      <TextInput
-        placeholder="Email"
-        className="border border-gray-300 rounded-lg p-4 mb-4"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        placeholder="Password"
-        className="border border-gray-300 rounded-lg p-4 mb-6"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      <TouchableOpacity
-        onPress={handleLogin}
-        disabled={isSubmitting}
-        className="bg-blue-600 p-4 rounded-lg"
-      >
-        <Text className="text-white text-center font-semibold text-lg">
-          {isSubmitting ? "Logging in..." : "Login"}
+    <TreasureBackground className="flex-row items-center justify-center px-6">
+      <View className="w-full max-w-[420px] rounded-3xl border border-[#c48f57] bg-[#fff7e9] p-6">
+        <Text className="text-center text-4xl font-black text-[#5b3218]">Login</Text>
+        <Text className="mt-1 text-center text-sm text-[#8f5c31]">
+          Continue your treasure run
         </Text>
-      </TouchableOpacity>
 
-      <Text
-        className="text-center text-blue-600 mt-6"
-        onPress={() => router.push("/register")}
-      >
-        Dont have an account? Register
-      </Text>
-    </View>
+        <TextInput
+          placeholder="Email"
+          placeholderTextColor="#9a7a55"
+          className="mt-6 rounded-xl border border-[#c48f57] bg-[#fffdf6] p-4 text-[#5b3218]"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (inlineError) setInlineError(null);
+          }}
+        />
+
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor="#9a7a55"
+          className="mt-3 rounded-xl border border-[#c48f57] bg-[#fffdf6] p-4 text-[#5b3218]"
+          secureTextEntry
+          autoComplete="password"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (inlineError) setInlineError(null);
+          }}
+        />
+
+        {inlineError && (
+          <View className="mt-3">
+            <InlineBanner message={inlineError} tone="warning" />
+          </View>
+        )}
+
+        <TouchableOpacity
+          onPress={handleLogin}
+          disabled={isSubmitting}
+          className={`mt-4 rounded-xl p-4 ${isSubmitting ? "bg-[#c49a73]" : "bg-[#7a4a24]"}`}
+        >
+          <Text className="text-center text-lg font-bold text-white">
+            {isSubmitting ? "Logging in..." : "Login"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity className="mt-5" onPress={() => router.replace("/register")}>
+          <Text className="text-center font-semibold text-[#7a4a24]">
+            Don&apos;t have an account? Register
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </TreasureBackground>
   );
 }
