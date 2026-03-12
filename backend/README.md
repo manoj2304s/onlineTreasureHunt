@@ -11,7 +11,8 @@
 2. Set:
    - `DB_URL`
    - `JWT_SECRET`
-   - `CORS_ORIGIN`
+   - `CORS_ORIGINS` (comma-separated browser origins)
+   - `BODY_LIMIT` (e.g. `100kb`)
    - `PORT`
 
 ## Commands
@@ -20,8 +21,10 @@
 - Build: `npm run build`
 - Start built app: `npm start`
 - Run tests: `npm test`
+- Run integration tests: `RUN_INTEGRATION_TESTS=true npm run test:integration`
 - Seed initial level: `npx ts-node src/scripts/seedLevel.ts`
 
 ## Health Check
 
 - `GET /health`
+- `GET /health/readiness`
