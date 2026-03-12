@@ -7,8 +7,8 @@ const GameConfigSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["waiting", "active", "finished"],
-    default: "waiting",
+    enum: ["inactive", "active", "finished"],
+    default: "inactive",
   },
   startedAt: {
     type: Date,
