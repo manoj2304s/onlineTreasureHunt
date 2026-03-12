@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import healthRoutes from "./routes/health.routes";
 import authRoutes from "./routes/auth.routes";
 import gameRoutes from "./routes/game.routes";
@@ -11,15 +12,40 @@ import {
   errorHandler,
   notFoundHandler,
 } from "./middlewares/error.middleware";
+import { requestContext } from "./middlewares/requestContext.middleware";
+import { requestLogger } from "./middlewares/requestLogger.middleware";
+import { logger } from "./utils/logger";
+
+const isOriginAllowed = (origin: string | undefined) => {
+  if (!origin) {
+    // Native apps / non-browser clients may not send Origin.
+    return true;
+  }
+  return env.CORS_ORIGINS.includes(origin);
+};
 
 const app = express();
+app.use(helmet());
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      logger.warn("cors_blocked", {
+        origin,
+        allowedOrigins: env.CORS_ORIGINS,
+      });
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: env.BODY_LIMIT }));
+app.use(requestContext);
+app.use(requestLogger);
 
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
