@@ -2,13 +2,25 @@ import axios from "axios";
 import { router } from "expo-router";
 import { getToken, removeToken } from "../utils/storage";
 
+const rawApiUrl = process.env.EXPO_PUBLIC_API_URL ?? "";
+const normalizedApiUrl = rawApiUrl.trim().replace(/\/+$/, "");
+
 const API = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL as string,
+  baseURL: normalizedApiUrl,
+  timeout: 15000,
 });
 
 let isRedirectingToLogin = false;
 
 API.interceptors.request.use(async (config) => {
+  if (!normalizedApiUrl) {
+    return Promise.reject(
+      new Error(
+        "Missing EXPO_PUBLIC_API_URL. Set it in frontend/.env before building the app.",
+      ),
+    );
+  }
+
   const token = await getToken();
 
   if (token) {

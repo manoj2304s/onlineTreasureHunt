@@ -12,6 +12,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const reasonValue = Array.isArray(reason) ? reason[0] : reason;
@@ -27,18 +28,40 @@ export default function LoginScreen() {
   }, [reason, toast]);
 
   const handleLogin = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password.trim();
+
+    if (!normalizedEmail || !normalizedPassword) {
+      toast.show("Email and password are required", {
+        type: "danger",
+        placement: "top",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      const res = await loginAPI(email, password);
+      const res = await loginAPI(normalizedEmail, normalizedPassword);
 
       await login(res.token);
 
       router.replace("/home");
     } catch (error: any) {
       console.log(error.response?.data || error.message);
-      toast.show(error.response?.data?.message || "Login failed", {
+      const errorMessage =
+        error.response?.data?.message ||
+        (error.message === "Network Error"
+          ? "Cannot reach server. Check EXPO_PUBLIC_API_URL and use HTTPS or enable cleartext traffic for Android builds."
+          : error.message) ||
+        "Login failed";
+
+      toast.show(errorMessage, {
         type: "danger",
         placement: "top",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -66,10 +89,11 @@ export default function LoginScreen() {
 
       <TouchableOpacity
         onPress={handleLogin}
+        disabled={isSubmitting}
         className="bg-blue-600 p-4 rounded-lg"
       >
         <Text className="text-white text-center font-semibold text-lg">
-          Login
+          {isSubmitting ? "Logging in..." : "Login"}
         </Text>
       </TouchableOpacity>
 
