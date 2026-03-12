@@ -3,6 +3,15 @@ import User from "../models/user.model";
 import { GameConfig } from "../models/gameConfig.model";
 import { getRecentActivities } from "../services/activity.service";
 
+const toSeconds = (start?: Date | null, end?: Date | null) => {
+  if (!start) {
+    return 0;
+  }
+
+  const endAt = end ?? new Date();
+  return Math.max(0, Math.floor((endAt.getTime() - start.getTime()) / 1000));
+};
+
 export const getGameStats = async (req: Request, res: Response) => {
   try {
     const totalPlayers = await User.countDocuments();
@@ -36,7 +45,9 @@ export const getGameStats = async (req: Request, res: Response) => {
 export const getPlayerProgress = async (req: Request, res: Response) => {
   try {
     const players = await User.find()
-      .select("username email currentLevel wrongAttempts lockedUntil")
+      .select(
+        "username email currentLevel wrongAttempts lockedUntil penaltyTime gameStartedAt gameCompletedAt",
+      )
       .sort({ currentLevel: -1 });
 
     const formatted = players.map((p) => ({
@@ -45,12 +56,43 @@ export const getPlayerProgress = async (req: Request, res: Response) => {
       email: p.email,
       currentLevel: p.currentLevel,
       wrongAttempts: p.wrongAttempts,
+      penaltyTime: p.penaltyTime ?? 0,
+      gameStartedAt: p.gameStartedAt,
+      gameCompletedAt: p.gameCompletedAt,
+      playingTime: toSeconds(p.gameStartedAt, p.gameCompletedAt),
+      totalTime: toSeconds(p.gameStartedAt, p.gameCompletedAt) + (p.penaltyTime ?? 0),
       isLocked: p.lockedUntil && p.lockedUntil > new Date(),
     }));
 
     res.json(formatted);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch players" });
+  }
+};
+
+export const getPlayerDetails = async (req: Request, res: Response) => {
+  try {
+    const { playerId } = req.params;
+
+    const player = await User.findById(playerId).select(
+      "-password -createdAt -updatedAt -lockedUntil -__v",
+    );
+
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const playingTime = toSeconds(player.gameStartedAt, player.gameCompletedAt);
+    const penaltyTime = player.penaltyTime ?? 0;
+
+    res.json({
+      ...player.toObject(),
+      userId: player._id,
+      playingTime,
+      totalTime: playingTime + penaltyTime,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch player details" });
   }
 };
 
