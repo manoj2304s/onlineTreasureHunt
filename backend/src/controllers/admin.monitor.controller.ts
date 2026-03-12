@@ -36,7 +36,7 @@ export const getGameStats = async (req: Request, res: Response) => {
 export const getPlayerProgress = async (req: Request, res: Response) => {
   try {
     const players = await User.find()
-      .select("username email currentLevel wrongAttempts lockUntil")
+      .select("username email currentLevel wrongAttempts lockedUntil")
       .sort({ currentLevel: -1 });
 
     const formatted = players.map((p) => ({

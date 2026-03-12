@@ -213,7 +213,7 @@ export const resetGame = async (req: Request, res: Response) => {
         $set: {
           currentLevel: 1,
           wrongAttempts: 0,
-          lockUntil: null,
+          lockedUntil: null,
           locationUnlocked: true,
           gameStartedAt: null,
           gameCompletedAt: null,
