@@ -12,12 +12,29 @@ import {
 } from "../controllers/admin.controller";
 import { adminMiddleware } from "../middlewares/admin.middleware";
 import { protect } from "../middlewares/auth.middleware";
+import { validate } from "../middlewares/validate.middleware";
+import {
+  createLevelSchema,
+  updateLevelSchema,
+} from "../validators/admin.validator";
 
 const router = Router();
 
-router.post("/levels", protect, adminMiddleware, createLevel);
+router.post(
+  "/levels",
+  protect,
+  adminMiddleware,
+  validate(createLevelSchema),
+  createLevel,
+);
 router.get("/levels", protect, adminMiddleware, getLevels);
-router.put("/levels/:id", protect, adminMiddleware, updateLevel);
+router.put(
+  "/levels/:id",
+  protect,
+  adminMiddleware,
+  validate(updateLevelSchema),
+  updateLevel,
+);
 router.delete("/levels/:id", protect, adminMiddleware, deleteLevel);
 router.post("/gameplay/start", protect, adminMiddleware, startGame);
 router.post("/gameplay/end", protect, adminMiddleware, endGame);
