@@ -3,7 +3,11 @@ import Level from "../models/level.model";
 import User from "../models/user.model";
 import { GameConfig } from "../models/gameConfig.model";
 import bcrypt from "bcrypt";
-import { io } from "../index";
+import {
+  endGameService,
+  resetGameService,
+  startGameService,
+} from "../services/adminGameControl.service";
 
 export const createLevel = async (req: Request, res: Response) => {
   try {
@@ -107,34 +111,8 @@ export const deleteLevel = async (req: Request, res: Response) => {
 
 export const startGame = async (req: Request, res: Response) => {
   try {
-    const existingConfig = await GameConfig.findById("game-config");
-
-    if (existingConfig && existingConfig.status === "active") {
-      return res.status(400).json({
-        message: "Game already started",
-      });
-    }
-
-    const config = await GameConfig.findByIdAndUpdate(
-      "game-config",
-      {
-        status: "active",
-        startedAt: new Date(),
-        endedAt: null,
-      },
-      {
-        upsert: true,
-        returnDocument: "after",
-        setDefaultsOnInsert: true,
-      },
-    );
-
-    io.emit("game:status", "active");
-
-    res.json({
-      message: "Game started successfully",
-      startedAt: config?.startedAt,
-    });
+    const result = await startGameService();
+    return res.status(result.statusCode).json(result.body);
   } catch (error) {
     console.error("Error starting game:", error);
     res.status(500).json({
@@ -145,31 +123,8 @@ export const startGame = async (req: Request, res: Response) => {
 
 export const endGame = async (req: Request, res: Response) => {
   try {
-    const config = await GameConfig.findById("game-config");
-
-    if (!config || config.status !== "active") {
-      return res.status(400).json({
-        message: "Game is not active",
-      });
-    }
-
-    const updatedConfig = await GameConfig.findByIdAndUpdate(
-      "game-config",
-      {
-        status: "finished",
-        endedAt: new Date(),
-      },
-      {
-        returnDocument: "after",
-      },
-    );
-
-    io.emit("game:status", "finished");
-
-    res.json({
-      message: "Game ended successfully",
-      endedAt: updatedConfig?.endedAt,
-    });
+    const result = await endGameService();
+    return res.status(result.statusCode).json(result.body);
   } catch (error) {
     console.error("Error ending game:", error);
 
@@ -207,38 +162,8 @@ export const getGameStatus = async (req: Request, res: Response) => {
 
 export const resetGame = async (req: Request, res: Response) => {
   try {
-    await User.updateMany(
-      {},
-      {
-        $set: {
-          currentLevel: 1,
-          wrongAttempts: 0,
-          lockedUntil: null,
-          locationUnlocked: true,
-          gameStartedAt: null,
-          gameCompletedAt: null,
-          penaltyTime: 0,
-          hintUsedLevels: [],
-        },
-      },
-    );
-
-    await GameConfig.updateOne(
-      {},
-      {
-        $set: {
-          status: "inactive",
-          startedAt: null,
-          endedAt: null,
-        },
-      },
-    );
-
-    io.emit("game:status", "inactive");
-
-    res.json({
-      message: "Game reset successfully",
-    });
+    const result = await resetGameService();
+    return res.status(result.statusCode).json(result.body);
   } catch (error) {
     res.status(500).json({
       message: "Failed to reset game",
