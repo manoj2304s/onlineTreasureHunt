@@ -185,7 +185,7 @@ export const getGameStatus = async (req: Request, res: Response) => {
 
     if (!config) {
       return res.json({
-        status: "waiting",
+        status: "inactive",
         startedAt: null,
         endedAt: null,
       });
