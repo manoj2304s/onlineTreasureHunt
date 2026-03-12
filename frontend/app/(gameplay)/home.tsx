@@ -69,8 +69,8 @@ export default function HomeScreen() {
             router.replace("/completed");
             return;
           }
-
-          if (userLocationUnlocked === false || currentLevel === 1) {
+          
+          if (userLocationUnlocked === true) {
             router.replace("/gameplay");
           } else {
             router.replace("/location");
