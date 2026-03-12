@@ -76,14 +76,14 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <TreasureBackground className="items-center justify-center">
+      <TreasureBackground className="flex-row items-center justify-center">
         <ActivityIndicator />
       </TreasureBackground>
     );
   }
 
   return (
-    <TreasureBackground className="items-center justify-center px-6">
+    <TreasureBackground className="flex-row items-center justify-center px-6">
       <View className="w-full max-w-[420px] rounded-3xl border border-[#c48f57] bg-[#fff7e9] p-6">
         <Text className="text-center text-4xl font-black text-[#5b3218]">
           Treasure Hunt

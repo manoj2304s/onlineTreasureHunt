@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import {
   startGame,
   endGame,
@@ -8,83 +9,125 @@ import {
   getGameStatus,
 } from "@/src/services/adminGameService";
 import { socket } from "@/src/services/socket";
+import { getErrorMessage } from "@/src/lib/httpError";
 
 type Status = "waiting" | "inactive" | "active" | "finished";
+type ActionType = "start" | "end" | "reset" | null;
 
 export default function GameControlPanel() {
   const [status, setStatus] = useState<Status>("waiting");
+  const [pendingAction, setPendingAction] = useState<ActionType>(null);
 
   useEffect(() => {
     const fetchStatus = async () => {
-      const data = await getGameStatus();
-      setStatus(data.status);
+      try {
+        const data = await getGameStatus();
+        setStatus(data.status);
+      } catch (error) {
+        toast.error(getErrorMessage(error, "Failed to fetch game status."));
+      }
     };
 
     fetchStatus();
 
-    socket.on("game:status", (newStatus: Status) => {
+    const onStatusUpdate = (newStatus: Status) => {
       setStatus(newStatus);
-    });
+    };
+
+    socket.on("game:status", onStatusUpdate);
 
     return () => {
-      socket.off("game:status");
+      socket.off("game:status", onStatusUpdate);
     };
   }, []);
 
   const handleStart = async () => {
-    await startGame();
+    if (pendingAction) return;
+
+    try {
+      setPendingAction("start");
+      await startGame();
+      toast.success("Game started.");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to start game."));
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   const handleEnd = async () => {
+    if (pendingAction) return;
     if (!confirm("End the game?")) return;
-    await endGame();
+
+    try {
+      setPendingAction("end");
+      await endGame();
+      toast.success("Game ended.");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to end game."));
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   const handleReset = async () => {
+    if (pendingAction) return;
     if (!confirm("Reset the entire game?")) return;
-    await resetGame();
+
+    try {
+      setPendingAction("reset");
+      await resetGame();
+      toast.success("Game reset completed.");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to reset game."));
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   return (
-    <div className="p-6 border rounded-xl shadow-md bg-white space-y-4">
+    <div className="panel rise-in space-y-4 p-6">
       <h2 className="text-xl font-bold">Game Control Panel</h2>
 
       <div className="flex items-center gap-3">
-        <span className="font-semibold">Game Status:</span>
+        <span className="font-semibold text-[#1f1d1a]">Game Status:</span>
 
         <span
-          className={`px-3 py-1 rounded text-white ${
+          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white ${
             status === "active"
-              ? "bg-green-600"
+              ? "bg-emerald-600"
               : status === "finished"
                 ? "bg-red-600"
-                : "bg-gray-500"
+                : "bg-slate-500"
           }`}
         >
-          {status.toUpperCase()}
+          {status}
         </span>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex w-full flex-col gap-6 mt-6">
         <button
           onClick={handleStart}
-          className="bg-green-600 text-white px-4 py-2 rounded"
+          disabled={Boolean(pendingAction) || status === "active"}
+          className="btn btn-primary w-full"
         >
-          Start Game
+          {pendingAction === "start" ? "Starting..." : "Start Game"}
         </button>
 
         <button
           onClick={handleEnd}
-          className="bg-yellow-500 text-white px-4 py-2 rounded"
+          disabled={Boolean(pendingAction) || status !== "active"}
+          className="btn btn-warn w-full"
         >
-          End Game
+          {pendingAction === "end" ? "Ending..." : "End Game"}
         </button>
 
         <button
           onClick={handleReset}
-          className="bg-red-600 text-white px-4 py-2 rounded"
+          disabled={Boolean(pendingAction)}
+          className="btn btn-danger w-full"
         >
-          Reset Game
+          {pendingAction === "reset" ? "Resetting..." : "Reset Game"}
         </button>
       </div>
     </div>

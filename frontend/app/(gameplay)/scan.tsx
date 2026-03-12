@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { unlockLocation } from "@/src/services/gameplayService";
-import { InlineBanner } from "@/src/components/ui/InlineBanner";
 import { useAppFeedback } from "@/src/hooks/useAppFeedback";
 
 export default function ScanScreen() {
@@ -12,10 +11,14 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [screenError, setScreenError] = useState<string | null>(null);
+  const requestLockRef = useRef(false);
+  const lastScanRef = useRef<{ payload: string; at: number } | null>(null);
+  const nextAllowedScanAtRef = useRef(0);
 
   const handleScan = async ({ data }: { data?: string }) => {
-    if (scanned || loading) return;
+    const now = Date.now();
+    if (requestLockRef.current || scanned || loading) return;
+    if (now < nextAllowedScanAtRef.current) return;
 
     const payload = (data ?? "").trim();
     if (!payload) {
@@ -26,9 +29,18 @@ export default function ScanScreen() {
       return;
     }
 
+    if (
+      lastScanRef.current &&
+      lastScanRef.current.payload === payload &&
+      now - lastScanRef.current.at < 2500
+    ) {
+      return;
+    }
+
+    requestLockRef.current = true;
     setScanned(true);
     setLoading(true);
-    setScreenError(null);
+    lastScanRef.current = { payload, at: now };
 
     try {
       await unlockLocation(payload);
@@ -39,14 +51,17 @@ export default function ScanScreen() {
       router.replace("/gameplay");
     } catch (err: any) {
       const message = err.response?.data?.message || "Invalid QR code.";
-      setScreenError(message);
-      setScanned(false);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(
         () => undefined,
       );
       feedback.showError(message);
+      nextAllowedScanAtRef.current = Date.now() + 1800;
+      setTimeout(() => {
+        setScanned(false);
+      }, 1800);
     } finally {
       setLoading(false);
+      requestLockRef.current = false;
     }
   };
 
@@ -86,12 +101,6 @@ export default function ScanScreen() {
         }}
         onBarcodeScanned={handleScan}
       />
-
-      {screenError && (
-        <View className="absolute left-4 right-4 top-14">
-          <InlineBanner message={screenError} tone="error" />
-        </View>
-      )}
 
       {loading && (
         <View className="absolute inset-0 items-center justify-center bg-black/55">

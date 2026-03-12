@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import API from "@/src/services/api";
+import { getErrorMessage } from "@/src/lib/httpError";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const reason = searchParams.get("reason");
@@ -21,10 +23,25 @@ export default function LoginPage() {
     }
   }, [searchParams, router]);
 
-  const handleLogin = async () => {
+  const handleLogin = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+
+    if (isSubmitting) return;
+
+    if (!email.trim()) {
+      toast.error("Email is required.");
+      return;
+    }
+
+    if (!password.trim()) {
+      toast.error("Password is required.");
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
       const res = await API.post("/auth/login", {
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -32,22 +49,27 @@ export default function LoginPage() {
       localStorage.setItem("adminToken", token);
 
       router.push("/dashboard");
-    } catch {
-      toast.error("Login failed. Please check your credentials.");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Login failed. Please check your credentials."));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-black">
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <form
+        onSubmit={handleLogin}
+        className="panel rise-in w-full max-w-sm p-8"
+      >
+        <h2 className="mb-6 text-center text-2xl font-bold text-[color:var(--foreground)]">
           Admin Login
         </h2>
 
         <input
           type="email"
           placeholder="Email"
-          className="w-full border p-2 mb-4 text-black"
+          className="input mb-4"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -55,18 +77,18 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full border p-2 mb-4 text-black"
+          className="input mb-4"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         <button
-          onClick={handleLogin}
-          className="w-full bg-blue-500 text-white p-2 rounded"
+          disabled={isSubmitting}
+          className="btn btn-info w-full"
         >
-          Login
+          {isSubmitting ? "Logging in..." : "Login"}
         </button>
-      </div>
+      </form>
     </div>
   );
 }

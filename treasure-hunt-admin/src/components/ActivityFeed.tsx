@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import { socket } from "@/src/services/socket";
+import { getErrorMessage } from "@/src/lib/httpError";
 import { getActivities } from "../services/adminGameService";
 
 type Activity = {
@@ -21,7 +23,7 @@ export default function ActivityFeed() {
         const activity = await getActivities();
         setActivities(Array.isArray(activity) ? activity : []);
       } catch (error) {
-        console.error("Failed to fetch activities:", error);
+        toast.error(getErrorMessage(error, "Failed to fetch activities."));
       }
     };
 
@@ -39,12 +41,15 @@ export default function ActivityFeed() {
   }, []);
 
   return (
-    <div className="p-6 border rounded-xl shadow-md bg-white">
-      <h2 className="text-xl font-bold mb-4">Live Activity</h2>
+    <div className="panel rise-in p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="live-dot" />
+        <h2 className="text-xl font-bold">Live Activity</h2>
+      </div>
 
-      <ul className="space-y-2">
+      <ul className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {activities.map((a, i) => (
-          <li key={a._id || i} className="text-sm text-black/80">
+          <li key={a._id || i} className="subtle-card text-sm text-black/80 px-3 py-2">
             {a.message}
           </li>
         ))}

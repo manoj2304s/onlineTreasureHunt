@@ -18,6 +18,7 @@ import { TreasureBackground } from "@/src/components/ui/TreasureBackground";
 import { InlineBanner } from "@/src/components/ui/InlineBanner";
 import { useAppFeedback } from "@/src/hooks/useAppFeedback";
 import { LeaderboardEntry } from "@/src/types/gameplay";
+import { LEADERBOARD_POLL_MS } from "@/src/utils/config";
 
 type RowMovement = "up" | "down" | "same";
 
@@ -237,7 +238,7 @@ export default function LeaderboardScreen() {
 
       const poll = setInterval(() => {
         loadLeaderboard(true);
-      }, 5000);
+      }, LEADERBOARD_POLL_MS);
 
       return () => {
         clearInterval(poll);
@@ -254,8 +255,8 @@ export default function LeaderboardScreen() {
   }, [lastUpdatedAt]);
 
   return (
-    <TreasureBackground>
-      <View className="flex-1 px-5 pb-8 pt-14">
+    <TreasureBackground className="flex-row items-center justify-center px-4">
+      <View className="flex-1 w-full max-w-[520px] px-5 pb-8 pt-14">
         <View className="mb-4 flex-row items-start justify-between">
           <View>
             <Text className="text-3xl font-black text-[#5b3218]">Leaderboard</Text>

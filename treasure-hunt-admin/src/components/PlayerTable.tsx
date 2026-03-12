@@ -1,90 +1,73 @@
 import { Player } from "@/src/types";
-import {
-  unlockPlayer,
-  advancePlayer,
-  resetPlayer,
-} from "@/src/services/adminPlayerService";
 
 type Props = {
   players: Player[];
+  onPlayerClick: (playerId: string) => void;
 };
 
-export default function PlayerTable({ players }: Props) {
-  const handleUnlock = async (playerId: string) => {
-    try {
-      await unlockPlayer(playerId);
-      alert("Player unlocked");
-    } catch {
-      alert("Failed to unlock player");
-    }
-  };
+const formatDuration = (seconds: number | null | undefined) => {
+  if (typeof seconds !== "number" || !Number.isFinite(seconds)) return "--:--";
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
 
-  const handleAdvance = async (playerId: string) => {
-    try {
-      await advancePlayer(playerId);
-      alert("Player advanced");
-    } catch {
-      alert("Failed to advance player");
-    }
-  };
-
-  const handleReset = async (playerId: string) => {
-    const confirmReset = confirm("Reset this player's progress?");
-    if (!confirmReset) return;
-
-    try {
-      await resetPlayer(playerId);
-      alert("Player reset");
-    } catch {
-      alert("Failed to reset player");
-    }
-  };
+export default function PlayerTable({ players, onPlayerClick }: Props) {
   return (
-    <table className="w-full bg-white shadow rounded">
-      <thead className="bg-gray-200">
-        <tr className="text-black">
-          <th className="p-3 text-left">Username</th>
-          <th className="p-3 text-left">Level</th>
-          <th className="p-3 text-left">Attempts</th>
-          <th className="p-3 text-left">Status</th>
-          <th className="p-3 text-left">Action</th>
+    <table className="data-table">
+      <thead>
+        <tr>
+          <th>Team Name</th>
+          <th>Level</th>
+          <th>Attempts</th>
+          <th>Status</th>
+          <th>Penalty Time</th>
+          <th>Playing Time</th>
+          <th>Total Time</th>
         </tr>
       </thead>
 
       <tbody>
+        {!players.length ? (
+          <tr>
+            <td colSpan={7} className="text-center text-[color:var(--foreground-muted)]">
+              No players found.
+            </td>
+          </tr>
+        ) : null}
+
         {players.map((player) => {
           let status = "Active";
 
           if (player.gameCompletedAt) status = "Finished";
 
           return (
-            <tr key={player.userId} className="border-t text-black">
-              <td className="p-3">{player.username}</td>
-              <td className="p-3">{player.currentLevel}</td>
-              <td className="p-3">{player.wrongAttempts}</td>
-              <td className="p-3">{status}</td>
-              <td className="space-x-2 flex flex-wrap p-3">
-                <button
-                  onClick={() => handleUnlock(player.userId)}
-                  className="bg-green-500 text-white px-3 py-1 rounded"
+            <tr
+              key={player.userId}
+              onClick={() => onPlayerClick(player.userId)}
+              className="cursor-pointer transition hover:bg-lime-500/10"
+            >
+              <td>{player.username}</td>
+              <td>{player.currentLevel}</td>
+              <td>{player.wrongAttempts}</td>
+              <td>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] ${
+                    status === "Finished"
+                      ? "bg-lime-500/20 text-lime-300"
+                      : "bg-cyan-500/20 text-cyan-300"
+                  }`}
                 >
-                  Unlock
-                </button>
-
-                <button
-                  onClick={() => handleAdvance(player.userId)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded"
-                >
-                  Advance
-                </button>
-
-                <button
-                  onClick={() => handleReset(player.userId)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
-                  Reset
-                </button>
+                  {status}
+                </span>
               </td>
+              <td className="font-mono">{formatDuration(player.penaltyTime)}</td>
+              <td className="font-mono">{formatDuration(player.playingTime)}</td>
+              <td className="font-mono">{formatDuration(player.totalTime)}</td>
             </tr>
           );
         })}

@@ -1,10 +1,33 @@
 export type Player = {
   userId: string;
   username: string;
+  email: string;
   currentLevel: number;
   wrongAttempts: number;
-  gameStartedAt?: string;
-  gameCompletedAt?: string;
+  penaltyTime: number;
+  playingTime: number;
+  totalTime: number;
+  gameStartedAt?: string | null;
+  gameCompletedAt?: string | null;
+  isLocked?: boolean;
+};
+
+export type PlayerDetails = {
+  userId: string;
+  _id: string;
+  username: string;
+  email: string;
+  currentLevel: number;
+  levelOrder: number[];
+  gameStartedAt?: string | null;
+  gameCompletedAt?: string | null;
+  wrongAttempts: number;
+  penaltyTime: number;
+  hintUsedLevels: number[];
+  role: "player" | "admin";
+  locationUnlocked: boolean;
+  playingTime: number;
+  totalTime: number;
 };
 
 export type Level = {

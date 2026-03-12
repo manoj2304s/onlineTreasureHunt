@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, {
   Easing,
   FadeIn,
@@ -477,7 +478,7 @@ export default function GameplayScreen() {
               onPress={() => setHintModalVisible(false)}
               className="absolute right-3 top-3 z-10 p-1"
             >
-              <Text className="text-2xl font-bold text-[#7a4a24]">×</Text>
+              <MaterialCommunityIcons name="close" size={24} color="#7a4a24" />
             </TouchableOpacity>
 
             <Text className="text-center text-2xl font-black text-[#5b3218]">
@@ -540,3 +541,7 @@ export default function GameplayScreen() {
     </TreasureBackground>
   );
 }
+
+
+
+

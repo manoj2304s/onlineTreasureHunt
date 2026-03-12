@@ -1,6 +1,7 @@
 import { Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn, FadeOut, ZoomIn } from "react-native-reanimated";
 import LottieView from "lottie-react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type Props = {
   variant: "success" | "restored" | null;
@@ -25,7 +26,7 @@ export function AnswerResultOverlay({ variant, onClose }: Props) {
         className="w-72 rounded-3xl border border-[#f0cc88] bg-[#fff5e1] px-5 py-5"
       >
         <TouchableOpacity onPress={onClose} className="absolute right-3 top-3 z-10 p-1">
-          <Text className="text-xl font-bold text-[#7a4a24]">×</Text>
+          <MaterialCommunityIcons name="close" size={22} color="#7a4a24" />
         </TouchableOpacity>
 
         <View className="items-center">

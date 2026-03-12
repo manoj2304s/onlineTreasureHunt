@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { deleteLevel } from "@/src/services/levelService";
-import {Level} from "@/src/types";
+import { getErrorMessage } from "@/src/lib/httpError";
+import { Level } from "@/src/types";
 
 type Props = {
   levels: Level[];
@@ -14,43 +17,64 @@ export default function LevelTable({
   fetchLevels,
   setSelectedLevel,
 }: Props) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const handleDelete = async (id: string) => {
+    if (deletingId) return;
     if (!confirm("Delete this level?")) return;
 
-    await deleteLevel(id);
-    fetchLevels();
+    try {
+      setDeletingId(id);
+      await deleteLevel(id);
+      await fetchLevels();
+      toast.success("Level deleted.");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to delete level."));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
-    <table className="w-full border">
+    <table className="data-table">
       <thead>
-        <tr className="bg-gray-100 text-black">
-          <th className="p-2">Level</th>
-          <th className="p-2">Question</th>
-          <th className="p-2">Actions</th>
+        <tr>
+          <th>Level</th>
+          <th>Question</th>
+          <th>Actions</th>
         </tr>
       </thead>
 
       <tbody>
+        {!levels.length ? (
+          <tr>
+            <td colSpan={3} className="text-center text-[#5a564e]">
+              No levels found.
+            </td>
+          </tr>
+        ) : null}
+
         {levels.map((level) => (
-          <tr key={level._id} className="border-t">
-            <td className="p-2">{level.levelNumber}</td>
+          <tr key={level._id} className="transition hover:bg-[#f0ede4]/60">
+            <td className="font-semibold">{level.levelNumber}</td>
 
-            <td className="p-2">{level.question}</td>
+            <td>{level.question}</td>
 
-            <td className="p-2 space-x-2">
+            <td className="space-x-2">
               <button
                 onClick={() => setSelectedLevel(level)}
-                className="bg-blue-500 text-white px-3 py-1 rounded"
+                disabled={Boolean(deletingId)}
+                className="btn btn-info text-sm"
               >
                 Edit
               </button>
 
               <button
                 onClick={() => handleDelete(level._id)}
-                className="bg-red-500 text-white px-3 py-1 rounded"
+                disabled={Boolean(deletingId)}
+                className="btn btn-danger text-sm"
               >
-                Delete
+                {deletingId === level._id ? "Deleting..." : "Delete"}
               </button>
             </td>
           </tr>

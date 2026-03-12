@@ -85,7 +85,7 @@ export default function LocationScreen() {
 
   if (loading) {
     return (
-      <TreasureBackground className="items-center justify-center">
+      <TreasureBackground className="flex-row items-center justify-center">
         <ActivityIndicator size="large" />
         <Text className="mt-2 text-[#7a4a24]">Loading location...</Text>
       </TreasureBackground>
@@ -94,7 +94,7 @@ export default function LocationScreen() {
 
   if (error) {
     return (
-      <TreasureBackground className="items-center justify-center px-6">
+      <TreasureBackground className="flex-row items-center justify-center px-6">
         <InlineBanner message={error} tone="error" />
         <TouchableOpacity
           className="mt-4 rounded-xl bg-[#7a4a24] px-6 py-3"
