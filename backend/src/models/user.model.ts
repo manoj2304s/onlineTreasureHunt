@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     currentLevel: { type: Number, default: 1 },
+    levelOrder: { type: [Number], default: [] },
     gameStartedAt: { type: Date },
     gameCompletedAt: { type: Date },
     wrongAttempts: { type: Number, default: 0 },

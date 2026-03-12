@@ -34,6 +34,7 @@ export const resetPlayer = async (req: Request, res: Response) => {
     }
 
     player.currentLevel = 1;
+    player.levelOrder = [];
     player.wrongAttempts = 0;
     player.penaltyTime = 0;
     player.hintUsedLevels = [];
