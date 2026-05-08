@@ -15,7 +15,7 @@ export default function Index() {
       }
     }
   }, [token, loading]);
-
+  console.log("API URL:", process.env.EXPO_PUBLIC_API_URL);
   return (
     <View className="flex-1 flex-row justify-center items-center">
       <ActivityIndicator size="large" />
