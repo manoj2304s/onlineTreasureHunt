@@ -13,7 +13,8 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "package": "com.manoj2304.onlinetreasurehunt"
     },
     "web": {
       "output": "static"
@@ -26,6 +27,18 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "63b4806e-d819-4e3b-a0eb-2bbe783d6d7e"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/63b4806e-d819-4e3b-a0eb-2bbe783d6d7e"
     }
   }
 }
