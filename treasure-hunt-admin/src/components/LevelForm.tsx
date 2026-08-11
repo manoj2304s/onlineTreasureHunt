@@ -102,7 +102,13 @@ export default function LevelForm({
       setIsSubmitting(true);
 
       if (selectedLevel) {
-        const payload: { question?: string; hint?: string; answer?: string } = {};
+        const payload: {
+          question?: string;
+          hint?: string;
+          answer?: string;
+          qrCode?: string;
+          location?: { latitude: number; longitude: number };
+        } = {};
 
         if (question.trim() !== selectedLevel.question.trim()) {
           payload.question = question.trim();
@@ -114,6 +120,25 @@ export default function LevelForm({
 
         if (answer.trim()) {
           payload.answer = answer.trim();
+        }
+
+        if ((qrCode || "").trim() !== selectedLevel.qrCode.trim()) {
+          payload.qrCode = qrCode.trim();
+        }
+
+        const latitudeValue = Number(latitude);
+        const longitudeValue = Number(longitude);
+        const locationChanged =
+          Number.isFinite(latitudeValue) &&
+          Number.isFinite(longitudeValue) &&
+          (latitudeValue !== selectedLevel.location.latitude ||
+            longitudeValue !== selectedLevel.location.longitude);
+
+        if (locationChanged) {
+          payload.location = {
+            latitude: latitudeValue,
+            longitude: longitudeValue,
+          };
         }
 
         if (!Object.keys(payload).length) {
@@ -192,7 +217,7 @@ export default function LevelForm({
         placeholder="QR Code"
         value={qrCode}
         onChange={(e) => setQrCode(e.target.value)}
-        disabled={Boolean(selectedLevel) || isSubmitting}
+        disabled={isSubmitting}
         className="input"
       />
 
@@ -204,7 +229,7 @@ export default function LevelForm({
         onChange={(e) =>
           setLatitude(e.target.value === "" ? "" : Number(e.target.value))
         }
-        disabled={Boolean(selectedLevel) || isSubmitting}
+        disabled={isSubmitting}
         className="input"
       />
 
@@ -216,7 +241,7 @@ export default function LevelForm({
         onChange={(e) =>
           setLongitude(e.target.value === "" ? "" : Number(e.target.value))
         }
-        disabled={Boolean(selectedLevel) || isSubmitting}
+        disabled={isSubmitting}
         className="input"
       />
 
@@ -246,16 +271,13 @@ export default function LevelForm({
 
       {selectedLevel ? (
         <p className="text-xs text-[color:var(--foreground-muted)]">
-          Editing updates question/hint/answer only. Level number, QR code, and
-          location are locked.
+          Editing updates question, hint, answer, QR code, and location. Level number remains locked.
         </p>
-      ) : null}
-
-      {!selectedLevel ? (
+      ) : (
         <p className="text-xs text-[color:var(--foreground-muted)]">
-          Latitude range: -90 to 90, Longitude range: -180 to 180.
+          Create a new level with question, answer, QR code, and target location. Latitude range: -90 to 90, Longitude range: -180 to 180.
         </p>
-      ) : null}
+      )}
 
       {!selectedLevel ? null : (
         <p className="text-xs text-[color:var(--foreground-muted)]">

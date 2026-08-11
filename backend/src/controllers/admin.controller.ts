@@ -60,9 +60,22 @@ export const getLevels = async (req: Request, res: Response) => {
 export const updateLevel = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { question, hint, answer } = req.body;
+    const { question, hint, answer, location, qrCode } = req.body;
 
-    const updateData: any = { question, hint };
+    const updateData: any = {};
+
+    if (question !== undefined) {
+      updateData.question = question;
+    }
+    if (hint !== undefined) {
+      updateData.hint = hint;
+    }
+    if (qrCode !== undefined) {
+      updateData.qrCode = qrCode;
+    }
+    if (location !== undefined) {
+      updateData.location = location;
+    }
 
     if (answer) {
       updateData.answerHash = await bcrypt.hash(
