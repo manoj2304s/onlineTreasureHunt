@@ -45,6 +45,39 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+export const promoteAdmin = async (req: Request, res: Response) => {
+  try {
+    const { email, password, code } = req.body;
+
+    const ADMIN_CODE = "230410";
+    if (code !== ADMIN_CODE) {
+      return res.status(403).json({ message: "Invalid admin code" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    if (user.role === "admin") {
+      return res.status(200).json({ message: "User is already an admin" });
+    }
+
+    user.role = "admin";
+    await user.save();
+
+    res.status(200).json({ message: "User promoted to admin" });
+  } catch (error) {
+    console.error("Error promoting user to admin:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
