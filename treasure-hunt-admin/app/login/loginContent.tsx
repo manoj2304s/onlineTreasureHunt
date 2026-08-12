@@ -54,6 +54,13 @@ export default function LoginContent() {
 
       localStorage.setItem("adminToken", token);
 
+      const meRes = await API.get("/auth/me");
+      if (meRes.data.role !== "admin") {
+        localStorage.removeItem("adminToken");
+        toast.error("Access denied. Admins only.");
+        return;
+      }
+
       router.push("/dashboard");
     } catch (error) {
       toast.error(
