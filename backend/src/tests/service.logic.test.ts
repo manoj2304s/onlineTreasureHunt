@@ -62,14 +62,27 @@ const run = async () => {
     (gameConfigModule.GameConfig.findById as any) = async () => ({
       status: "active",
     });
+    let capturedUserUpdate: any = null;
     (gameConfigModule.GameConfig.findByIdAndUpdate as any) = async () => ({
       endedAt: new Date("2026-01-01T12:00:00.000Z"),
     });
+    (userModule.default.updateMany as any) = async (filter: any, update: any) => {
+      capturedUserUpdate = { filter, update };
+      return { acknowledged: true };
+    };
     const endSuccess = await adminGameControlService.endGameService();
     assert.equal(endSuccess.statusCode, 200);
     assert.equal(endSuccess.body.message, "Game ended successfully");
+    assert.deepEqual(capturedUserUpdate.filter, {
+      gameStartedAt: { $ne: null },
+      gameCompletedAt: null,
+    });
+    assert.deepEqual(capturedUserUpdate.update, {
+      $set: {
+        gameCompletedAt: endSuccess.body.endedAt,
+      },
+    });
 
-    (userModule.default.updateMany as any) = async () => ({ acknowledged: true });
     (gameConfigModule.GameConfig.updateOne as any) = async () => ({
       acknowledged: true,
     });

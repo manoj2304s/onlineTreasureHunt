@@ -93,11 +93,13 @@ export const endGameService = async (): Promise<AdminControlResult> => {
         };
       }
 
+      const now = new Date();
+
       const updateQuery = GameConfig.findByIdAndUpdate(
         "game-config",
         {
           status: "finished",
-          endedAt: new Date(),
+          endedAt: now,
         },
         {
           returnDocument: "after",
@@ -107,6 +109,22 @@ export const endGameService = async (): Promise<AdminControlResult> => {
         updateQuery.session(session);
       }
       const updatedConfig = await updateQuery;
+
+      const userUpdate = User.updateMany(
+        {
+          gameStartedAt: { $ne: null },
+          gameCompletedAt: null,
+        },
+        {
+          $set: {
+            gameCompletedAt: now,
+          },
+        },
+      );
+      if (session) {
+        userUpdate.session(session);
+      }
+      await userUpdate;
 
       return {
         result: {
