@@ -141,7 +141,7 @@ export default function LoginContent() {
         <div className="mt-4 flex flex-col gap-3">
           <button
             type="button"
-            className="btn btn-outline w-full"
+            className="btn btn-info w-full"
             onClick={() => setShowAdminCode((current) => !current)}
           >
             {showAdminCode ? "Cancel New Admin" : "New Admin"}
@@ -166,7 +166,7 @@ export default function LoginContent() {
               <button
                 type="button"
                 disabled={isPromoting}
-                className="btn btn-secondary w-full"
+                className="btn btn-info w-full"
                 onClick={handlePromote}
               >
                 {isPromoting ? "Applying code..." : "Apply Admin Code"}
