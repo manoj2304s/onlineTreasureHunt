@@ -16,6 +16,7 @@ import { validate } from "../middlewares/validate.middleware";
 import {
   createLevelSchema,
   updateLevelSchema,
+  adminActionSchema,
 } from "../validators/admin.validator";
 
 const router = Router();
@@ -36,10 +37,28 @@ router.put(
   updateLevel,
 );
 router.delete("/levels/:id", protect, adminMiddleware, deleteLevel);
-router.post("/gameplay/start", protect, adminMiddleware, startGame);
-router.post("/gameplay/end", protect, adminMiddleware, endGame);
+router.post(
+  "/gameplay/start",
+  protect,
+  adminMiddleware,
+  validate(adminActionSchema),
+  startGame,
+);
+router.post(
+  "/gameplay/end",
+  protect,
+  adminMiddleware,
+  validate(adminActionSchema),
+  endGame,
+);
 router.get("/gameplay/status", protect, adminMiddleware, getGameStatus);
-router.post("/reset-game", protect, adminMiddleware, resetGame);
+router.post(
+  "/reset-game",
+  protect,
+  adminMiddleware,
+  validate(adminActionSchema),
+  resetGame,
+);
 router.get("/export-leaderboard", protect, adminMiddleware, exportLeaderboard);
 
 export default router;

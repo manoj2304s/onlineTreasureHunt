@@ -9,6 +9,35 @@ import {
   startGameService,
 } from "../services/adminGameControl.service";
 
+const verifyAdminPassword = async (req: Request, res: Response) => {
+  const { password } = req.body;
+
+  if (!password || typeof password !== "string") {
+    res.status(400).json({ message: "Password is required" });
+    return null;
+  }
+
+  const currentUser = (req as any).user;
+  if (!currentUser?._id) {
+    res.status(401).json({ message: "Unauthorized" });
+    return null;
+  }
+
+  const user = await User.findById(currentUser._id);
+  if (!user) {
+    res.status(401).json({ message: "User not found" });
+    return null;
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    res.status(401).json({ message: "Invalid password" });
+    return null;
+  }
+
+  return user;
+};
+
 export const createLevel = async (req: Request, res: Response) => {
   try {
     const { levelNumber, question, hint, answer, qrCode, location } = req.body;
@@ -124,6 +153,9 @@ export const deleteLevel = async (req: Request, res: Response) => {
 
 export const startGame = async (req: Request, res: Response) => {
   try {
+    const admin = await verifyAdminPassword(req, res);
+    if (!admin) return;
+
     const result = await startGameService();
     return res.status(result.statusCode).json(result.body);
   } catch (error) {
@@ -136,6 +168,9 @@ export const startGame = async (req: Request, res: Response) => {
 
 export const endGame = async (req: Request, res: Response) => {
   try {
+    const admin = await verifyAdminPassword(req, res);
+    if (!admin) return;
+
     const result = await endGameService();
     return res.status(result.statusCode).json(result.body);
   } catch (error) {
@@ -175,6 +210,9 @@ export const getGameStatus = async (req: Request, res: Response) => {
 
 export const resetGame = async (req: Request, res: Response) => {
   try {
+    const admin = await verifyAdminPassword(req, res);
+    if (!admin) return;
+
     const result = await resetGameService();
     return res.status(result.statusCode).json(result.body);
   } catch (error) {

@@ -36,3 +36,7 @@ export const updateLevelSchema = z
       message: "At least one field must be provided",
     },
   );
+
+export const adminActionSchema = z.object({
+  password: z.string().trim().min(1, "Password is required"),
+});
