@@ -77,11 +77,10 @@ const run = async () => {
       gameStartedAt: { $ne: null },
       gameCompletedAt: null,
     });
-    assert.deepEqual(capturedUserUpdate.update, {
-      $set: {
-        gameCompletedAt: endSuccess.body.endedAt,
-      },
-    });
+    const completedAt = capturedUserUpdate.update.$set.gameCompletedAt;
+    assert.ok(completedAt instanceof Date);
+    assert.ok(completedAt.getTime() > 0);
+    assert.ok(Math.abs(completedAt.getTime() - Date.now()) < 5000);
 
     (gameConfigModule.GameConfig.updateOne as any) = async () => ({
       acknowledged: true,

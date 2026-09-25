@@ -5,7 +5,7 @@ const API = axios.create({
 });
 
 const isSessionExpiredError = (error: any) => {
-  if (error?.response?.status !== 401) return false;
+  if (error?.response?.status !== 403) return false;
 
   const message = String(error?.response?.data?.message ?? "").toLowerCase();
 
