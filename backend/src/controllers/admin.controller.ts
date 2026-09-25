@@ -31,7 +31,7 @@ const verifyAdminPassword = async (req: Request, res: Response) => {
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    res.status(401).json({ message: "Invalid password" });
+    res.status(403).json({ message: "Invalid password" });
     return null;
   }
 

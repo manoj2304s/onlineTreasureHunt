@@ -75,7 +75,7 @@ const run = async () => {
   const adminPayload = {
     username: `admin_${unique}`,
     email: `admin_${unique}@mail.com`,
-    password: "secret123",
+    password: "230410",
   };
 
   const registerAdminRes = await request(app)
@@ -92,6 +92,20 @@ const run = async () => {
   assert.equal(loginAdminRes.status, 200);
   const adminToken = loginAdminRes.body.token as string;
   assert.ok(adminToken);
+
+  const validAdminReset = await request(app)
+    .post("/admin/reset-game")
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ password: adminPayload.password });
+  assert.equal(validAdminReset.status, 200);
+  assert.equal(validAdminReset.body.message, "Game reset successfully");
+
+  const invalidAdminPassword = await request(app)
+    .post("/admin/reset-game")
+    .set("Authorization", `Bearer ${adminToken}`)
+    .send({ password: "wrong-password" });
+  assert.equal(invalidAdminPassword.status, 403);
+  assert.equal(invalidAdminPassword.body.message, "Invalid password");
 
   const nonAdminCreateLevel = await request(app)
     .post("/admin/levels")
