@@ -41,14 +41,12 @@ router.post(
   "/gameplay/start",
   protect,
   adminMiddleware,
-  validate(adminActionSchema),
   startGame,
 );
 router.post(
   "/gameplay/end",
   protect,
   adminMiddleware,
-  validate(adminActionSchema),
   endGame,
 );
 router.get("/gameplay/status", protect, adminMiddleware, getGameStatus);
@@ -56,7 +54,6 @@ router.post(
   "/reset-game",
   protect,
   adminMiddleware,
-  validate(adminActionSchema),
   resetGame,
 );
 router.get("/export-leaderboard", protect, adminMiddleware, exportLeaderboard);

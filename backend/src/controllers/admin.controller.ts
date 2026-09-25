@@ -9,15 +9,9 @@ import {
   startGameService,
 } from "../services/adminGameControl.service";
 
-const verifyAdminPassword = async (req: Request, res: Response) => {
-  const { password } = req.body;
-
-  if (!password || typeof password !== "string") {
-    res.status(400).json({ message: "Password is required" });
-    return null;
-  }
-
+const verifyAdminAccess = async (req: Request, res: Response) => {
   const currentUser = (req as any).user;
+
   if (!currentUser?._id) {
     res.status(401).json({ message: "Unauthorized" });
     return null;
@@ -29,9 +23,8 @@ const verifyAdminPassword = async (req: Request, res: Response) => {
     return null;
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    res.status(403).json({ message: "Invalid password" });
+  if (user.role !== "admin") {
+    res.status(403).json({ message: "Access denied. Admin only." });
     return null;
   }
 
@@ -153,7 +146,7 @@ export const deleteLevel = async (req: Request, res: Response) => {
 
 export const startGame = async (req: Request, res: Response) => {
   try {
-    const admin = await verifyAdminPassword(req, res);
+    const admin = await verifyAdminAccess(req, res);
     if (!admin) return;
 
     const result = await startGameService();
@@ -168,7 +161,7 @@ export const startGame = async (req: Request, res: Response) => {
 
 export const endGame = async (req: Request, res: Response) => {
   try {
-    const admin = await verifyAdminPassword(req, res);
+    const admin = await verifyAdminAccess(req, res);
     if (!admin) return;
 
     const result = await endGameService();
@@ -210,7 +203,7 @@ export const getGameStatus = async (req: Request, res: Response) => {
 
 export const resetGame = async (req: Request, res: Response) => {
   try {
-    const admin = await verifyAdminPassword(req, res);
+    const admin = await verifyAdminAccess(req, res);
     if (!admin) return;
 
     const result = await resetGameService();

@@ -17,9 +17,6 @@ type ActionType = "start" | "end" | "reset" | null;
 export default function GameControlPanel() {
   const [status, setStatus] = useState<Status>("waiting");
   const [pendingAction, setPendingAction] = useState<ActionType>(null);
-  const [confirmAction, setConfirmAction] = useState<ActionType>(null);
-  const [confirmationPassword, setConfirmationPassword] = useState("");
-  const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -44,50 +41,29 @@ export default function GameControlPanel() {
     };
   }, []);
 
-  const handleOpenConfirm = (action: ActionType) => {
-    if (pendingAction) return;
-    setConfirmAction(action);
-    setConfirmationPassword("");
-  };
+  const executeAction = async (action: ActionType) => {
+    if (!action || pendingAction) return;
 
-  const closeConfirm = () => {
-    if (isConfirming) return;
-    setConfirmAction(null);
-    setConfirmationPassword("");
-  };
-
-  const executeConfirmedAction = async () => {
-    if (!confirmAction) return;
-
-    if (!confirmationPassword.trim()) {
-      toast.error("Password is required.");
-      return;
-    }
-
-    setPendingAction(confirmAction);
-    setIsConfirming(true);
+    setPendingAction(action);
 
     try {
-      if (confirmAction === "start") {
-        await startGame(confirmationPassword);
+      if (action === "start") {
+        await startGame();
         toast.success("Game started.");
       }
 
-      if (confirmAction === "end") {
-        await endGame(confirmationPassword);
+      if (action === "end") {
+        await endGame();
         toast.success("Game ended.");
       }
 
-      if (confirmAction === "reset") {
-        await resetGame(confirmationPassword);
+      if (action === "reset") {
+        await resetGame();
         toast.success("Game reset completed.");
       }
-
-      closeConfirm();
     } catch (error) {
-      toast.error(getErrorMessage(error, "Action failed. Please check your password."));
+      toast.error(getErrorMessage(error, "Action failed."));
     } finally {
-      setIsConfirming(false);
       setPendingAction(null);
     }
   };
@@ -114,7 +90,7 @@ export default function GameControlPanel() {
 
       <div className="flex w-full flex-col gap-6 mt-6">
         <button
-          onClick={() => handleOpenConfirm("start")}
+          onClick={() => executeAction("start")}
           disabled={Boolean(pendingAction) || status === "active"}
           className="btn btn-primary w-full"
         >
@@ -122,7 +98,7 @@ export default function GameControlPanel() {
         </button>
 
         <button
-          onClick={() => handleOpenConfirm("end")}
+          onClick={() => executeAction("end")}
           disabled={Boolean(pendingAction) || status !== "active"}
           className="btn btn-warn w-full"
         >
@@ -130,51 +106,13 @@ export default function GameControlPanel() {
         </button>
 
         <button
-          onClick={() => handleOpenConfirm("reset")}
+          onClick={() => executeAction("reset")}
           disabled={Boolean(pendingAction)}
           className="btn btn-danger w-full"
         >
           {pendingAction === "reset" ? "Resetting..." : "Reset Game"}
         </button>
       </div>
-
-      {confirmAction ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="panel w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-2">
-              Confirm {confirmAction === "start" ? "Start Game" : confirmAction === "end" ? "End Game" : "Reset Game"}
-            </h3>
-            <p className="mb-4 text-sm text-slate-600">
-              Enter your admin password to confirm this action.
-            </p>
-            <input
-              type="password"
-              placeholder="Password"
-              className="input w-full mb-4"
-              value={confirmationPassword}
-              onChange={(e) => setConfirmationPassword(e.target.value)}
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={closeConfirm}
-                className="btn btn-outline"
-                disabled={isConfirming}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={executeConfirmedAction}
-                className="btn btn-info"
-                disabled={isConfirming}
-              >
-                {isConfirming ? "Confirming..." : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

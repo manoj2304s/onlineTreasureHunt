@@ -1,17 +1,17 @@
 import API from "./api";
 
-export const startGame = async (password: string) => {
-  const res = await API.post("/admin/gameplay/start", { password });
+export const startGame = async () => {
+  const res = await API.post("/admin/gameplay/start", {});
   return res.data;
 };
 
-export const endGame = async (password: string) => {
-  const res = await API.post("/admin/gameplay/end", { password });
+export const endGame = async () => {
+  const res = await API.post("/admin/gameplay/end", {});
   return res.data;
 };
 
-export const resetGame = async (password: string) => {
-  const res = await API.post("/admin/reset-game", { password });
+export const resetGame = async () => {
+  const res = await API.post("/admin/reset-game", {});
   return res.data;
 };
 
