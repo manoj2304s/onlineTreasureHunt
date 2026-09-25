@@ -16,7 +16,6 @@ import { validate } from "../middlewares/validate.middleware";
 import {
   createLevelSchema,
   updateLevelSchema,
-  adminActionSchema,
 } from "../validators/admin.validator";
 
 const router = Router();

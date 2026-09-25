@@ -12,16 +12,12 @@ import {
   loginSchema,
   promoteAdminSchema,
 } from "../validators/auth.validator";
-import {
-  loginRateLimiter,
-  registerRateLimiter,
-} from "../middlewares/authRateLimiter.middleware";
 
 const router = Router();
 
-router.post("/register", registerRateLimiter, validate(registerSchema), register);
-router.post("/login", loginRateLimiter, validate(loginSchema), login);
-router.post("/promote-admin", loginRateLimiter, validate(promoteAdminSchema), promoteAdmin);
+router.post("/register", validate(registerSchema), register);
+router.post("/login", validate(loginSchema), login);
+router.post("/promote-admin", validate(promoteAdminSchema), promoteAdmin);
 router.get("/me", protect, getCurrentUser);
 
 export default router;
