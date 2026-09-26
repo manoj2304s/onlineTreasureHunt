@@ -3,6 +3,7 @@
     "name": "Online Treasure Hunt",
     "slug": "online-treasure-hunt",
     "version": "1.0.0",
+    "icon": "./assets/images/icon.png",
     "orientation": "portrait",
     "scheme": "online-treasure-hunt",
     "userInterfaceStyle": "automatic",
@@ -16,17 +17,36 @@
     },
     "android": {
       "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/adaptive-icon-monochrome.png",
+        "backgroundColor": "#ffffff"
+      },
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": true,
       "package": "com.manoj2304.onlinetreasurehunt"
     },
     "web": {
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#0f172a"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
