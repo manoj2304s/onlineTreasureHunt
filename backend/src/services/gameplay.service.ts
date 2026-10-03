@@ -272,7 +272,7 @@ export const submitAnswerService = async (
           correct: true,
           levelNumber: nextLevel.levelNumber,
           question: nextLevel.question,
-          hint: nextLevel.hint,
+          // `hint` omitted: see GET /gameplay/hint, which applies the penalty.
         },
       },
       postCommitActions,

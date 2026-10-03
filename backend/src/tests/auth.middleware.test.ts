@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { runStandalone } from "./harness";
 
 const req = { headers: {} } as any;
 let statusCode = 0;
@@ -20,10 +21,8 @@ const next = () => {
   nextCalled = true;
 };
 
-const run = async () => {
-  process.env.DB_URL = process.env.DB_URL || "mongodb://localhost:27017/test";
+export const run = async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
-  process.env.CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
   process.env.PORT = process.env.PORT || "5000";
   const { protect } = await import("../middlewares/auth.middleware");
 
@@ -33,10 +32,8 @@ const run = async () => {
   assert.equal(body.message, "Not authorized, no token");
   assert.equal(nextCalled, false);
 
-  console.log("auth.middleware.test: PASS");
 };
 
-run().catch((error) => {
-  console.error("auth.middleware.test: FAIL", error);
-  process.exit(1);
-});
+if (require.main === module) {
+  runStandalone("auth.middleware.test", run);
+}

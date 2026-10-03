@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
+import { runStandalone, skip } from "./harness";
 import mongoose from "mongoose";
 import request from "supertest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
-const run = async () => {
+export const run = async () => {
   if (process.env.RUN_INTEGRATION_TESTS !== "true") {
-    console.log("integration.api.test: SKIPPED (set RUN_INTEGRATION_TESTS=true)");
-    return;
+    skip("opt-in suite; re-run with RUN_INTEGRATION_TESTS=true");
   }
 
   let mongo: MongoMemoryServer | null = null;
@@ -18,17 +18,14 @@ const run = async () => {
       dbUrl = mongo.getUri();
     } catch (error: any) {
       if (error?.code === "EPERM") {
-        console.log("integration.api.test: SKIPPED (mongodb spawn blocked in environment)");
-        return;
+        skip("mongodb-memory-server could not spawn a binary (EPERM)");
       }
       throw error;
     }
   }
 
   process.env.DB_URL = dbUrl;
-  process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
   process.env.CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
-  process.env.PORT = process.env.PORT || "5000";
 
   await mongoose.connect(process.env.DB_URL);
 
@@ -75,7 +72,7 @@ const run = async () => {
   const adminPayload = {
     username: `admin_${unique}`,
     email: `admin_${unique}@mail.com`,
-    password: "230410",
+    password: "admin-test-pass",
   };
 
   const registerAdminRes = await request(app)
@@ -96,16 +93,23 @@ const run = async () => {
   const validAdminReset = await request(app)
     .post("/admin/reset-game")
     .set("Authorization", `Bearer ${adminToken}`)
-    .send({ password: adminPayload.password });
+    .send({});
   assert.equal(validAdminReset.status, 200);
   assert.equal(validAdminReset.body.message, "Game reset successfully");
 
-  const invalidAdminPassword = await request(app)
+  // Destructive admin actions are gated by JWT + admin role alone; the
+  // per-action password confirmation was removed deliberately, so assert the
+  // boundary that actually protects them now.
+  const nonAdminReset = await request(app)
     .post("/admin/reset-game")
-    .set("Authorization", `Bearer ${adminToken}`)
-    .send({ password: "wrong-password" });
-  assert.equal(invalidAdminPassword.status, 403);
-  assert.equal(invalidAdminPassword.body.message, "Invalid password");
+    .set("Authorization", `Bearer ${playerToken}`)
+    .send({});
+  assert.equal(nonAdminReset.status, 403);
+
+  const unauthenticatedReset = await request(app)
+    .post("/admin/reset-game")
+    .send({});
+  assert.equal(unauthenticatedReset.status, 401);
 
   const nonAdminCreateLevel = await request(app)
     .post("/admin/levels")
@@ -125,15 +129,8 @@ const run = async () => {
     await mongo.stop();
   }
 
-  console.log("integration.api.test: PASS");
 };
 
-run().catch(async (error) => {
-  console.error("integration.api.test: FAIL", error);
-  try {
-    await mongoose.disconnect();
-  } catch {
-    // ignore disconnect errors during cleanup
-  }
-  process.exit(1);
-});
+if (require.main === module) {
+  runStandalone("integration.api.test", run);
+}

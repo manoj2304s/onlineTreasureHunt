@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import bcrypt from "bcrypt";
 import generateToken from "../utils/generateTokens.utils";
+import { env } from "../config/env";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -49,8 +50,7 @@ export const promoteAdmin = async (req: Request, res: Response) => {
   try {
     const { email, password, code } = req.body;
 
-    const ADMIN_CODE = "230410";
-    if (code !== ADMIN_CODE) {
+    if (code !== env.ADMIN_CODE) {
       return res.status(403).json({ message: "Invalid admin code" });
     }
 
