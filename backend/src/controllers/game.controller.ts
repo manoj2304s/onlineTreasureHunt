@@ -41,8 +41,9 @@ export const getCurrentLevel = async (req: Request, res: Response) => {
     res.status(200).json({
       levelNumber: user.currentLevel,
       question: level.question,
-      hint: level.hint,
       location: level.location,
+      // `hint` is deliberately omitted: it is only served by GET /gameplay/hint,
+      // which charges a time penalty and records the level as hinted.
     });
   } catch (error) {
     console.error("Error fetching current level:", error);
