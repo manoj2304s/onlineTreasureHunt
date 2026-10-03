@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
+import { runStandalone } from "./harness";
 
-const run = async () => {
+export const run = async () => {
   const transactionModule = await import("../services/transaction.service");
   const gameConfigModule = await import("../models/gameConfig.model");
   const userModule = await import("../models/user.model");
@@ -164,7 +165,6 @@ const run = async () => {
     );
     assert.equal(missingQrUnlock.statusCode, 400);
 
-    console.log("service.logic.test: PASS");
   } finally {
     (transactionModule as any).runWithOptionalTransaction =
       originalRunWithOptionalTransaction;
@@ -183,7 +183,6 @@ const run = async () => {
   }
 };
 
-run().catch((error) => {
-  console.error("service.logic.test: FAIL", error);
-  process.exit(1);
-});
+if (require.main === module) {
+  runStandalone("service.logic.test", run);
+}
