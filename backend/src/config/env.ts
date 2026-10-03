@@ -11,6 +11,9 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().min(1, "CORS_ORIGINS is required"),
   BODY_LIMIT: z.string().default("100kb"),
   PORT: z.coerce.number().int().positive().default(5000),
+  ADMIN_CODE: z
+    .string()
+    .regex(/^[0-9]{6}$/, "ADMIN_CODE must be exactly 6 digits"),
   NODE_ENV: z.string().optional(),
 });
 

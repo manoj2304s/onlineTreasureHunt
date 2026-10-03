@@ -14,6 +14,7 @@
    - `CORS_ORIGINS` (comma-separated browser origins)
    - `BODY_LIMIT` (e.g. `100kb`)
    - `PORT`
+   - `ADMIN_CODE` (six digits; required to promote an account to admin)
 
 ## Commands
 
