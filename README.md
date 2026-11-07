@@ -3,6 +3,7 @@
 A real-time, location-based treasure hunt platform for campus and corporate events. Players move between physical checkpoints, scan a QR code to unlock each one, and answer a question to advance — while organisers watch progress, intervene, and control the game live from a web dashboard.
 
 Built for the Science Association.
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/manoj2304s/onlineTreasureHunt)
 
 ---
 
